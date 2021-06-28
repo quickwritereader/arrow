@@ -10,11 +10,11 @@
        || defined(__MINGW64__)                                          \
        || defined(__s390x__)                                            \
        || (defined(__ppc64__) || defined(__PPC64__) || defined(__ppc64le__) || defined(__PPC64LE__)) \
-       || defined(__EMSCRIPTEN__))
+       || defined(__EMSCRIPTEN__) )
 #define FASTFLOAT_64BIT
 #elif (defined(__i386) || defined(__i386__) || defined(_M_IX86)   \
      || defined(__arm__)                                        \
-     || defined(__MINGW32__))
+     || defined(__MINGW32__) || defined(__NEC__))
 #define FASTFLOAT_32BIT
 #else
 #error Unknown platform (not 32-bit, not 64-bit?)

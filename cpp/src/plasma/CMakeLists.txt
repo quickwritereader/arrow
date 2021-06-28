@@ -29,9 +29,9 @@ find_package(Threads)
 # The SO version is also the ABI version
 set(PLASMA_SO_VERSION "${ARROW_SO_VERSION}")
 set(PLASMA_FULL_SO_VERSION "${ARROW_FULL_SO_VERSION}")
-
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-conversion")
-
+if(NOT ${ARROW_CPU_FLAG} MATCHES "aurora" )
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-conversion")
+endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 
 set(PLASMA_SRCS

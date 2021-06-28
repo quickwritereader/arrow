@@ -49,7 +49,11 @@
 #define ARROW_PREDICT_TRUE(x) (__builtin_expect(!!(x), 1))
 #define ARROW_NORETURN __attribute__((noreturn))
 #define ARROW_NOINLINE __attribute__((noinline))
+#if defined(__NEC__)
+#define ARROW_PREFETCH(addr)
+#else
 #define ARROW_PREFETCH(addr) __builtin_prefetch(addr)
+#endif
 #elif defined(_MSC_VER)
 #define ARROW_NORETURN __declspec(noreturn)
 #define ARROW_NOINLINE __declspec(noinline)

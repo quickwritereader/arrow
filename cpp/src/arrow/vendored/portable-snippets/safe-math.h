@@ -11,7 +11,7 @@
 #if !defined(PSNIP_SAFE_H)
 #define PSNIP_SAFE_H
 
-#if !defined(PSNIP_SAFE_FORCE_PORTABLE)
+#if !defined(PSNIP_SAFE_FORCE_PORTABLE) && !defined(__NEC__)
 #  if defined(__has_builtin)
 #    if __has_builtin(__builtin_add_overflow) && !defined(__ibmxl__)
 #      define PSNIP_SAFE_HAVE_BUILTIN_OVERFLOW

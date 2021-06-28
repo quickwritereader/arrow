@@ -259,6 +259,15 @@ class FileMetaData;
 class FileCryptoMetaData;
 
 typedef struct _Statistics__isset {
+#if defined(__NEC__)
+  _Statistics__isset() : max(0), min(0), null_count(0), distinct_count(0), max_value(0), min_value(0) {}
+  uint8_t max :1;
+  uint8_t min :1;
+  uint8_t null_count :1;
+  uint8_t distinct_count :1;
+  uint8_t max_value :1;
+  uint8_t min_value :1;
+#else
   _Statistics__isset() : max(false), min(false), null_count(false), distinct_count(false), max_value(false), min_value(false) {}
   bool max :1;
   bool min :1;
@@ -266,6 +275,7 @@ typedef struct _Statistics__isset {
   bool distinct_count :1;
   bool max_value :1;
   bool min_value :1;
+#endif
 } _Statistics__isset;
 
 class Statistics : public virtual ::apache::thrift::TBase {
@@ -694,10 +704,17 @@ void swap(NanoSeconds &a, NanoSeconds &b);
 std::ostream& operator<<(std::ostream& out, const NanoSeconds& obj);
 
 typedef struct _TimeUnit__isset {
+#if defined(__NEC__)
+  _TimeUnit__isset() : MILLIS(0), MICROS(0), NANOS(0) {}
+  uint8_t MILLIS :1;
+  uint8_t MICROS :1;
+  uint8_t NANOS :1;
+#else
   _TimeUnit__isset() : MILLIS(false), MICROS(false), NANOS(false) {}
   bool MILLIS :1;
   bool MICROS :1;
   bool NANOS :1;
+#endif
 } _TimeUnit__isset;
 
 class TimeUnit : public virtual ::apache::thrift::TBase {
@@ -939,6 +956,22 @@ void swap(BsonType &a, BsonType &b);
 std::ostream& operator<<(std::ostream& out, const BsonType& obj);
 
 typedef struct _LogicalType__isset {
+#if defined(__NEC__)
+  _LogicalType__isset() : STRING(0), MAP(0), LIST(0), ENUM(0), DECIMAL(0), DATE(0), TIME(0), TIMESTAMP(0), INTEGER(0), UNKNOWN(0), JSON(0), BSON(0), UUID(0) {}
+  uint16_t STRING :1;
+  uint16_t MAP :1;
+  uint16_t LIST :1;
+  uint16_t ENUM :1;
+  uint16_t DECIMAL :1;
+  uint16_t DATE :1;
+  uint16_t TIME :1;
+  uint16_t TIMESTAMP :1;
+  uint16_t INTEGER :1;
+  uint16_t UNKNOWN :1;
+  uint16_t JSON :1;
+  uint16_t BSON :1;
+  uint16_t UUID :1;
+#else
   _LogicalType__isset() : STRING(false), MAP(false), LIST(false), ENUM(false), DECIMAL(false), DATE(false), TIME(false), TIMESTAMP(false), INTEGER(false), UNKNOWN(false), JSON(false), BSON(false), UUID(false) {}
   bool STRING :1;
   bool MAP :1;
@@ -953,6 +986,7 @@ typedef struct _LogicalType__isset {
   bool JSON :1;
   bool BSON :1;
   bool UUID :1;
+#endif
 } _LogicalType__isset;
 
 class LogicalType : public virtual ::apache::thrift::TBase {
@@ -1079,6 +1113,18 @@ void swap(LogicalType &a, LogicalType &b);
 std::ostream& operator<<(std::ostream& out, const LogicalType& obj);
 
 typedef struct _SchemaElement__isset {
+#if defined(__NEC__)
+  _SchemaElement__isset() : type(0), type_length(0), repetition_type(0), num_children(0), converted_type(0), scale(0), precision(0), field_id(0), logicalType(0) {}
+  uint16_t type :1;
+  uint16_t type_length :1;
+  uint16_t repetition_type :1;
+  uint16_t num_children :1;
+  uint16_t converted_type :1;
+  uint16_t scale :1;
+  uint16_t precision :1;
+  uint16_t field_id :1;
+  uint16_t logicalType :1;
+#else
   _SchemaElement__isset() : type(false), type_length(false), repetition_type(false), num_children(false), converted_type(false), scale(false), precision(false), field_id(false), logicalType(false) {}
   bool type :1;
   bool type_length :1;
@@ -1089,6 +1135,7 @@ typedef struct _SchemaElement__isset {
   bool precision :1;
   bool field_id :1;
   bool logicalType :1;
+#endif
 } _SchemaElement__isset;
 
 class SchemaElement : public virtual ::apache::thrift::TBase {
@@ -1192,8 +1239,13 @@ void swap(SchemaElement &a, SchemaElement &b);
 std::ostream& operator<<(std::ostream& out, const SchemaElement& obj);
 
 typedef struct _DataPageHeader__isset {
+#if defined(__NEC__)
+  _DataPageHeader__isset() : statistics(0) {}
+  uint8_t statistics :1;
+#else
   _DataPageHeader__isset() : statistics(false) {}
   bool statistics :1;
+#endif
 } _DataPageHeader__isset;
 
 class DataPageHeader : public virtual ::apache::thrift::TBase {
@@ -1287,8 +1339,13 @@ void swap(IndexPageHeader &a, IndexPageHeader &b);
 std::ostream& operator<<(std::ostream& out, const IndexPageHeader& obj);
 
 typedef struct _DictionaryPageHeader__isset {
+#if defined(__NEC__)
+  _DictionaryPageHeader__isset() : is_sorted(0) {}
+  uint8_t is_sorted :1;
+#else
   _DictionaryPageHeader__isset() : is_sorted(false) {}
   bool is_sorted :1;
+#endif
 } _DictionaryPageHeader__isset;
 
 class DictionaryPageHeader : public virtual ::apache::thrift::TBase {
@@ -1341,9 +1398,15 @@ void swap(DictionaryPageHeader &a, DictionaryPageHeader &b);
 std::ostream& operator<<(std::ostream& out, const DictionaryPageHeader& obj);
 
 typedef struct _DataPageHeaderV2__isset {
+#if defined(__NEC__)
+  _DataPageHeaderV2__isset() : is_compressed(1), statistics(0) {}
+  uint8_t is_compressed :1;
+  uint8_t statistics :1;
+#else
   _DataPageHeaderV2__isset() : is_compressed(true), statistics(false) {}
   bool is_compressed :1;
   bool statistics :1;
+#endif
 } _DataPageHeaderV2__isset;
 
 class DataPageHeaderV2 : public virtual ::apache::thrift::TBase {
@@ -1454,8 +1517,13 @@ void swap(SplitBlockAlgorithm &a, SplitBlockAlgorithm &b);
 std::ostream& operator<<(std::ostream& out, const SplitBlockAlgorithm& obj);
 
 typedef struct _BloomFilterAlgorithm__isset {
+#if defined(__NEC__)
+  _BloomFilterAlgorithm__isset() : BLOCK(0) {}
+  uint8_t BLOCK :1;
+#else
   _BloomFilterAlgorithm__isset() : BLOCK(false) {}
   bool BLOCK :1;
+#endif
 } _BloomFilterAlgorithm__isset;
 
 class BloomFilterAlgorithm : public virtual ::apache::thrift::TBase {
@@ -1529,8 +1597,13 @@ void swap(XxHash &a, XxHash &b);
 std::ostream& operator<<(std::ostream& out, const XxHash& obj);
 
 typedef struct _BloomFilterHash__isset {
+#if defined(__NEC__)
+  _BloomFilterHash__isset() : XXHASH(0) {}
+  uint8_t XXHASH :1;
+#else
   _BloomFilterHash__isset() : XXHASH(false) {}
   bool XXHASH :1;
+#endif
 } _BloomFilterHash__isset;
 
 class BloomFilterHash : public virtual ::apache::thrift::TBase {
@@ -1604,8 +1677,13 @@ void swap(Uncompressed &a, Uncompressed &b);
 std::ostream& operator<<(std::ostream& out, const Uncompressed& obj);
 
 typedef struct _BloomFilterCompression__isset {
+#if defined(__NEC__)
+  _BloomFilterCompression__isset() : UNCOMPRESSED(0) {}
+  uint8_t UNCOMPRESSED :1;
+#else
   _BloomFilterCompression__isset() : UNCOMPRESSED(false) {}
   bool UNCOMPRESSED :1;
+#endif
 } _BloomFilterCompression__isset;
 
 class BloomFilterCompression : public virtual ::apache::thrift::TBase {
@@ -1699,12 +1777,21 @@ void swap(BloomFilterHeader &a, BloomFilterHeader &b);
 std::ostream& operator<<(std::ostream& out, const BloomFilterHeader& obj);
 
 typedef struct _PageHeader__isset {
+#if defined(__NEC__)
+  _PageHeader__isset() : crc(0), data_page_header(0), index_page_header(0), dictionary_page_header(0), data_page_header_v2(0) {}
+  uint8_t crc :1;
+  uint8_t data_page_header :1;
+  uint8_t index_page_header :1;
+  uint8_t dictionary_page_header :1;
+  uint8_t data_page_header_v2 :1;
+#else
   _PageHeader__isset() : crc(false), data_page_header(false), index_page_header(false), dictionary_page_header(false), data_page_header_v2(false) {}
   bool crc :1;
   bool data_page_header :1;
   bool index_page_header :1;
   bool dictionary_page_header :1;
   bool data_page_header_v2 :1;
+#endif
 } _PageHeader__isset;
 
 class PageHeader : public virtual ::apache::thrift::TBase {
@@ -1790,8 +1877,13 @@ void swap(PageHeader &a, PageHeader &b);
 std::ostream& operator<<(std::ostream& out, const PageHeader& obj);
 
 typedef struct _KeyValue__isset {
+#if defined(__NEC__)
+  _KeyValue__isset() : value(0) {}
+  uint8_t value :1;
+#else
   _KeyValue__isset() : value(false) {}
   bool value :1;
+#endif
 } _KeyValue__isset;
 
 class KeyValue : public virtual ::apache::thrift::TBase {
@@ -1931,6 +2023,15 @@ void swap(PageEncodingStats &a, PageEncodingStats &b);
 std::ostream& operator<<(std::ostream& out, const PageEncodingStats& obj);
 
 typedef struct _ColumnMetaData__isset {
+#if defined(__NEC__)
+  _ColumnMetaData__isset() : key_value_metadata(0), index_page_offset(0), dictionary_page_offset(0), statistics(0), encoding_stats(0), bloom_filter_offset(0) {}
+  uint8_t key_value_metadata :1;
+  uint8_t index_page_offset :1;
+  uint8_t dictionary_page_offset :1;
+  uint8_t statistics :1;
+  uint8_t encoding_stats :1;
+  uint8_t bloom_filter_offset :1;
+#else
   _ColumnMetaData__isset() : key_value_metadata(false), index_page_offset(false), dictionary_page_offset(false), statistics(false), encoding_stats(false), bloom_filter_offset(false) {}
   bool key_value_metadata :1;
   bool index_page_offset :1;
@@ -1938,6 +2039,7 @@ typedef struct _ColumnMetaData__isset {
   bool statistics :1;
   bool encoding_stats :1;
   bool bloom_filter_offset :1;
+#endif
 } _ColumnMetaData__isset;
 
 class ColumnMetaData : public virtual ::apache::thrift::TBase {
@@ -2086,8 +2188,13 @@ void swap(EncryptionWithFooterKey &a, EncryptionWithFooterKey &b);
 std::ostream& operator<<(std::ostream& out, const EncryptionWithFooterKey& obj);
 
 typedef struct _EncryptionWithColumnKey__isset {
+#if defined(__NEC__)
+  _EncryptionWithColumnKey__isset() : key_metadata(0) {}
+  uint8_t key_metadata :1;
+#else
   _EncryptionWithColumnKey__isset() : key_metadata(false) {}
   bool key_metadata :1;
+#endif
 } _EncryptionWithColumnKey__isset;
 
 class EncryptionWithColumnKey : public virtual ::apache::thrift::TBase {
@@ -2135,9 +2242,15 @@ void swap(EncryptionWithColumnKey &a, EncryptionWithColumnKey &b);
 std::ostream& operator<<(std::ostream& out, const EncryptionWithColumnKey& obj);
 
 typedef struct _ColumnCryptoMetaData__isset {
+#if defined(__NEC__)
+  _ColumnCryptoMetaData__isset() : ENCRYPTION_WITH_FOOTER_KEY(0), ENCRYPTION_WITH_COLUMN_KEY(0) {}
+  uint8_t ENCRYPTION_WITH_FOOTER_KEY :1;
+  uint8_t ENCRYPTION_WITH_COLUMN_KEY :1;
+#else
   _ColumnCryptoMetaData__isset() : ENCRYPTION_WITH_FOOTER_KEY(false), ENCRYPTION_WITH_COLUMN_KEY(false) {}
   bool ENCRYPTION_WITH_FOOTER_KEY :1;
   bool ENCRYPTION_WITH_COLUMN_KEY :1;
+#endif
 } _ColumnCryptoMetaData__isset;
 
 class ColumnCryptoMetaData : public virtual ::apache::thrift::TBase {
@@ -2187,6 +2300,17 @@ void swap(ColumnCryptoMetaData &a, ColumnCryptoMetaData &b);
 std::ostream& operator<<(std::ostream& out, const ColumnCryptoMetaData& obj);
 
 typedef struct _ColumnChunk__isset {
+#if defined(__NEC__)
+  _ColumnChunk__isset() : file_path(0), meta_data(0), offset_index_offset(0), offset_index_length(0), column_index_offset(0), column_index_length(0), crypto_metadata(0), encrypted_column_metadata(0) {}
+  uint8_t file_path :1;
+  uint8_t meta_data :1;
+  uint8_t offset_index_offset :1;
+  uint8_t offset_index_length :1;
+  uint8_t column_index_offset :1;
+  uint8_t column_index_length :1;
+  uint8_t crypto_metadata :1;
+  uint8_t encrypted_column_metadata :1;
+#else
   _ColumnChunk__isset() : file_path(false), meta_data(false), offset_index_offset(false), offset_index_length(false), column_index_offset(false), column_index_length(false), crypto_metadata(false), encrypted_column_metadata(false) {}
   bool file_path :1;
   bool meta_data :1;
@@ -2196,6 +2320,7 @@ typedef struct _ColumnChunk__isset {
   bool column_index_length :1;
   bool crypto_metadata :1;
   bool encrypted_column_metadata :1;
+#endif
 } _ColumnChunk__isset;
 
 class ColumnChunk : public virtual ::apache::thrift::TBase {
@@ -2292,11 +2417,19 @@ void swap(ColumnChunk &a, ColumnChunk &b);
 std::ostream& operator<<(std::ostream& out, const ColumnChunk& obj);
 
 typedef struct _RowGroup__isset {
+#if defined(__NEC__)
+  _RowGroup__isset() : sorting_columns(0), file_offset(0), total_compressed_size(0), ordinal(0) {}
+  uint8_t sorting_columns :1;
+  uint8_t file_offset :1;
+  uint8_t total_compressed_size :1;
+  uint8_t ordinal :1;
+#else
   _RowGroup__isset() : sorting_columns(false), file_offset(false), total_compressed_size(false), ordinal(false) {}
   bool sorting_columns :1;
   bool file_offset :1;
   bool total_compressed_size :1;
   bool ordinal :1;
+#endif
 } _RowGroup__isset;
 
 class RowGroup : public virtual ::apache::thrift::TBase {
@@ -2406,8 +2539,13 @@ void swap(TypeDefinedOrder &a, TypeDefinedOrder &b);
 std::ostream& operator<<(std::ostream& out, const TypeDefinedOrder& obj);
 
 typedef struct _ColumnOrder__isset {
+#if defined(__NEC__)
+  _ColumnOrder__isset() : TYPE_ORDER(0) {}
+  uint8_t TYPE_ORDER :1;
+#else
   _ColumnOrder__isset() : TYPE_ORDER(false) {}
   bool TYPE_ORDER :1;
+#endif
 } _ColumnOrder__isset;
 
 class ColumnOrder : public virtual ::apache::thrift::TBase {
@@ -2532,8 +2670,13 @@ void swap(OffsetIndex &a, OffsetIndex &b);
 std::ostream& operator<<(std::ostream& out, const OffsetIndex& obj);
 
 typedef struct _ColumnIndex__isset {
+#if defined(__NEC__)
+  _ColumnIndex__isset() : null_counts(0) {}
+  uint8_t null_counts :1;
+#else
   _ColumnIndex__isset() : null_counts(false) {}
   bool null_counts :1;
+#endif
 } _ColumnIndex__isset;
 
 class ColumnIndex : public virtual ::apache::thrift::TBase {
@@ -2596,10 +2739,18 @@ void swap(ColumnIndex &a, ColumnIndex &b);
 std::ostream& operator<<(std::ostream& out, const ColumnIndex& obj);
 
 typedef struct _AesGcmV1__isset {
+#if defined(__NEC__)
+  _AesGcmV1__isset() : aad_prefix(0), aad_file_unique(0), supply_aad_prefix(0) {}
+  uint8_t aad_prefix :1;
+  uint8_t aad_file_unique :1;
+  uint8_t supply_aad_prefix :1;
+
+#else
   _AesGcmV1__isset() : aad_prefix(false), aad_file_unique(false), supply_aad_prefix(false) {}
   bool aad_prefix :1;
   bool aad_file_unique :1;
   bool supply_aad_prefix :1;
+#endif
 } _AesGcmV1__isset;
 
 class AesGcmV1 : public virtual ::apache::thrift::TBase {
@@ -2656,10 +2807,17 @@ void swap(AesGcmV1 &a, AesGcmV1 &b);
 std::ostream& operator<<(std::ostream& out, const AesGcmV1& obj);
 
 typedef struct _AesGcmCtrV1__isset {
+#if defined(__NEC__)
+  _AesGcmCtrV1__isset() : aad_prefix(0), aad_file_unique(0), supply_aad_prefix(0) {}
+  uint8_t aad_prefix :1;
+  uint8_t aad_file_unique :1;
+  uint8_t supply_aad_prefix :1;
+#else
   _AesGcmCtrV1__isset() : aad_prefix(false), aad_file_unique(false), supply_aad_prefix(false) {}
   bool aad_prefix :1;
   bool aad_file_unique :1;
   bool supply_aad_prefix :1;
+#endif
 } _AesGcmCtrV1__isset;
 
 class AesGcmCtrV1 : public virtual ::apache::thrift::TBase {
@@ -2716,9 +2874,15 @@ void swap(AesGcmCtrV1 &a, AesGcmCtrV1 &b);
 std::ostream& operator<<(std::ostream& out, const AesGcmCtrV1& obj);
 
 typedef struct _EncryptionAlgorithm__isset {
+#if defined(__NEC__)
+  _EncryptionAlgorithm__isset() : AES_GCM_V1(0), AES_GCM_CTR_V1(0) {}
+  uint8_t AES_GCM_V1 :1;
+  uint8_t AES_GCM_CTR_V1 :1;
+#else
   _EncryptionAlgorithm__isset() : AES_GCM_V1(false), AES_GCM_CTR_V1(false) {}
   bool AES_GCM_V1 :1;
   bool AES_GCM_CTR_V1 :1;
+#endif
 } _EncryptionAlgorithm__isset;
 
 class EncryptionAlgorithm : public virtual ::apache::thrift::TBase {
@@ -2768,12 +2932,21 @@ void swap(EncryptionAlgorithm &a, EncryptionAlgorithm &b);
 std::ostream& operator<<(std::ostream& out, const EncryptionAlgorithm& obj);
 
 typedef struct _FileMetaData__isset {
+#if defined(__NEC__)
+  _FileMetaData__isset() : key_value_metadata(0), created_by(0), column_orders(0), encryption_algorithm(0), footer_signing_key_metadata(0) {}
+  uint8_t key_value_metadata :1;
+  uint8_t created_by :1;
+  uint8_t column_orders :1;
+  uint8_t encryption_algorithm :1;
+  uint8_t footer_signing_key_metadata :1;
+#else
   _FileMetaData__isset() : key_value_metadata(false), created_by(false), column_orders(false), encryption_algorithm(false), footer_signing_key_metadata(false) {}
   bool key_value_metadata :1;
   bool created_by :1;
   bool column_orders :1;
   bool encryption_algorithm :1;
   bool footer_signing_key_metadata :1;
+#endif
 } _FileMetaData__isset;
 
 class FileMetaData : public virtual ::apache::thrift::TBase {
@@ -2864,8 +3037,13 @@ void swap(FileMetaData &a, FileMetaData &b);
 std::ostream& operator<<(std::ostream& out, const FileMetaData& obj);
 
 typedef struct _FileCryptoMetaData__isset {
+#if defined(__NEC__)
+  _FileCryptoMetaData__isset() : key_metadata(0) {}
+  uint8_t key_metadata :1;
+#else
   _FileCryptoMetaData__isset() : key_metadata(false) {}
   bool key_metadata :1;
+#endif
 } _FileCryptoMetaData__isset;
 
 class FileCryptoMetaData : public virtual ::apache::thrift::TBase {

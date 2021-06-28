@@ -48,7 +48,11 @@ using arrow::MemoryPool;
 using arrow::util::SafeCopy;
 
 namespace BitUtil = arrow::BitUtil;
-
+#if defined(__NEC__)
+#define CONST_EXPR const
+#else
+#define CONST_EXPR constexpr
+#endif
 namespace parquet {
 
 using schema::GroupNode;
@@ -1041,7 +1045,7 @@ void CheckNaNs() {
   NodePtr node = PrimitiveNode::Make("f", Repetition::OPTIONAL, ParquetType::type_num);
   ColumnDescriptor descr(node, 1, 1);
 
-  constexpr T nan = std::numeric_limits<T>::quiet_NaN();
+  CONST_EXPR T nan = std::numeric_limits<T>::quiet_NaN();
   constexpr T min = -4.0f;
   constexpr T max = 3.0f;
 
@@ -1083,7 +1087,7 @@ TEST(TestStatisticsSortOrderFloatNaN, NaNAndNullsInfiniteLoop) {
   NodePtr node = PrimitiveNode::Make("nan_float", Repetition::OPTIONAL, Type::FLOAT);
   ColumnDescriptor descr(node, 1, 1);
 
-  constexpr float nan = std::numeric_limits<float>::quiet_NaN();
+  CONST_EXPR float nan = std::numeric_limits<float>::quiet_NaN();
   std::array<float, kNumValues> nans_but_last{nan, nan, nan, nan, nan, nan, nan, 0.0f};
 
   uint8_t all_but_last_valid = 0x7F;  // 0b01111111

@@ -155,6 +155,12 @@ namespace date
 #  endif
 #endif  // HAS_VOID_T
 
+#ifdef __NEC__
+#    define CONSTDATA  const
+#    define CONSTCD11 
+#    define CONSTCD14 
+#    define NOEXCEPT noexcept
+#endif
 // Protect from Oracle sun macro
 #ifdef sun
 #  undef sun

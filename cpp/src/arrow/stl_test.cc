@@ -391,10 +391,17 @@ TEST(TestTableFromTupleVector, NullableTypesDoNotBreakUserSpecialization) {
 TEST(TestTableFromTupleVector, AppendingMultipleRows) {
   using row_type = std::tuple<std::vector<TestInt32Type>>;
   std::vector<std::string> names{"column1"};
+#if defined(__NEC__)
+  std::vector<row_type> rows = {
+      row_type{std::vector<TestInt32Type>{{1}, {2}, {3}}},    //
+      row_type{std::vector<TestInt32Type>{{10}, {20}, {30}}}  //
+  };
+#else
   std::vector<row_type> rows = {
       row_type{{{1}, {2}, {3}}},    //
       row_type{{{10}, {20}, {30}}}  //
   };
+#endif
   std::shared_ptr<Table> table;
   ASSERT_OK(TableFromTupleRange(default_memory_pool(), rows, names, &table));
 
