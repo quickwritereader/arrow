@@ -32,6 +32,8 @@ if(NOT DEFINED ARROW_CPU_FLAG)
     set(ARROW_CPU_FLAG "ppc")
   elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "s390x")
     set(ARROW_CPU_FLAG "s390x")
+  elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "AURORA")
+    set(ARROW_CPU_FLAG "aurora")
   else()
     set(ARROW_CPU_FLAG "x86")
   endif()
@@ -107,12 +109,12 @@ endif()
 if(NOT DEFINED CMAKE_C_STANDARD)
   set(CMAKE_C_STANDARD 11)
 endif()
-
-# This ensures that things like c++11 get passed correctly
-if(NOT DEFINED CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 11)
+if(NOT ${ARROW_CPU_FLAG} MATCHES "aurora" )
+  # This ensures that things like c++11 get passed correctly
+  if(NOT DEFINED CMAKE_CXX_STANDARD)
+    set(CMAKE_CXX_STANDARD 11)
+  endif()
 endif()
-
 # We require a C++11 compliant compiler
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -350,17 +352,18 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     # Without this, gcc >= 7 warns related to changes in C++17
     set(CXX_ONLY_FLAGS "${CXX_ONLY_FLAGS} -Wno-noexcept-type")
   endif()
+  if(NOT ${ARROW_CPU_FLAG} MATCHES "aurora" )
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "5.2")
+      # Disabling semantic interposition allows faster calling conventions
+      # when calling global functions internally, and can also help inlining.
+      # See https://stackoverflow.com/questions/35745543/new-option-in-gcc-5-3-fno-semantic-interposition
+      set(CXX_COMMON_FLAGS "${CXX_COMMON_FLAGS} -fno-semantic-interposition")
+    endif()
 
-  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "5.2")
-    # Disabling semantic interposition allows faster calling conventions
-    # when calling global functions internally, and can also help inlining.
-    # See https://stackoverflow.com/questions/35745543/new-option-in-gcc-5-3-fno-semantic-interposition
-    set(CXX_COMMON_FLAGS "${CXX_COMMON_FLAGS} -fno-semantic-interposition")
-  endif()
-
-  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9")
-    # Add colors when paired with ninja
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fdiagnostics-color=always")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9")
+      # Add colors when paired with ninja
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fdiagnostics-color=always")
+    endif()
   endif()
 
   if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "6.0")

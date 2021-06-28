@@ -53,8 +53,13 @@ struct is_future : std::false_type {};
 template <typename T>
 struct is_future<Future<T>> : std::true_type {};
 
+#if defined(__NEC__)
+template <typename Signature>
+using result_of_t = typename result_of_sfinae<Signature>::type;
+#else
 template <typename Signature>
 using result_of_t = typename std::result_of<Signature>::type;
+#endif
 
 struct ContinueFuture {
   template <typename Return>

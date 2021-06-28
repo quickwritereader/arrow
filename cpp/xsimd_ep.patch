@@ -1,0 +1,39 @@
+--- include/xsimd/memory/xsimd_load_store.hpp	2021-06-27 10:41:32.169595664 +0900
++++ include/xsimd/memory/xsimd_load_store_new.hpp	2021-06-27 10:41:21.941596273 +0900
+@@ -340,10 +340,17 @@
+     void store_simd(T1* real_dst, T1* imag_dst, const simd_type<T2>& src, unaligned_mode);
+ 
+     // Prefetch
+-
++#if defined(__NEC__) 
++    //provide definition in the same place
++    template <class T>
++    inline void prefetch(const T* /*address*/)
++    {
++    }
++#else
+     template <class T>
+     void prefetch(const T* address);
+-
++#endif
++#endif
+ 
+     /***************************
+      * detail implementation
+@@ -661,13 +668,13 @@
+     /*****************************
+      * Prefetch implementation
+      *****************************/
+-
++#if !defined(__NEC__)
+     template <class T>
+     inline void prefetch(const T* /*address*/)
+     {
+     }
+-
+-#if XSIMD_X86_INSTR_SET > XSIMD_VERSION_NUMBER_NOT_AVAILABLE
++#endif
++#if XSIMD_X86_INSTR_SET > XSIMD_VERSION_NUMBER_NOT_AVAILABLE && !defined(__NEC__)
+ 
+     template <>
+     inline void prefetch<int32_t>(const int32_t* address)

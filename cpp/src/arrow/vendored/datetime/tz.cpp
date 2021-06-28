@@ -407,7 +407,7 @@ get_tz_dir()
 // | End Configuration |
 // +-------------------+
 
-#ifndef _MSC_VER
+#if !defined(_MSC_VER) && !defined(__NEC__)
 static_assert(min_year <= max_year, "Configuration error");
 #endif
 

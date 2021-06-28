@@ -782,6 +782,7 @@ macro(build_boost)
                         BUILD_BYPRODUCTS ${BOOST_BUILD_PRODUCTS}
                         BUILD_IN_SOURCE 1
                         CONFIGURE_COMMAND ${BOOST_CONFIGURE_COMMAND}
+                        PATCH_COMMAND patch -Np0 < "${CMAKE_SOURCE_DIR}/boost_ep.patch"
                         BUILD_COMMAND ${BOOST_BUILD_COMMAND}
                         INSTALL_COMMAND "" ${EP_LOG_OPTIONS})
     list(APPEND ARROW_BUNDLED_STATIC_LIBS boost_system_static boost_filesystem_static)
@@ -790,6 +791,7 @@ macro(build_boost)
                         ${EP_LOG_OPTIONS}
                         BUILD_COMMAND ""
                         CONFIGURE_COMMAND ""
+                        PATCH_COMMAND patch -Np0 < "${CMAKE_SOURCE_DIR}/boost_ep.patch"
                         INSTALL_COMMAND ""
                         URL ${BOOST_SOURCE_URL})
   endif()
@@ -1296,6 +1298,7 @@ macro(build_thrift)
                       URL_HASH "MD5=${ARROW_THRIFT_BUILD_MD5_CHECKSUM}"
                       BUILD_BYPRODUCTS "${THRIFT_STATIC_LIB}"
                       CMAKE_ARGS ${THRIFT_CMAKE_ARGS}
+                      PATCH_COMMAND patch -Np0 < "${CMAKE_SOURCE_DIR}/thrift_ep.patch"
                       DEPENDS ${THRIFT_DEPENDENCIES} ${EP_LOG_OPTIONS})
 
   add_library(thrift::thrift STATIC IMPORTED)
@@ -1479,6 +1482,10 @@ if(ARROW_WITH_PROTOBUF)
   get_target_property(PROTOBUF_LIBRARY ${ARROW_PROTOBUF_LIBPROTOBUF} IMPORTED_LOCATION)
   message(STATUS "Found libprotobuf: ${PROTOBUF_LIBRARY}")
   message(STATUS "Found protobuf headers: ${PROTOBUF_INCLUDE_DIR}")
+endif()
+
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "AURORA")
+  set(ARROW_JEMALLOC off)
 endif()
 
 # ----------------------------------------------------------------------
@@ -1669,6 +1676,7 @@ macro(build_gtest)
 
   externalproject_add(googletest_ep
                       URL ${GTEST_SOURCE_URL}
+                      PATCH_COMMAND patch -Np0 < "${CMAKE_SOURCE_DIR}/gtest_ep.patch"
                       BUILD_BYPRODUCTS ${GTEST_SHARED_LIB} ${GTEST_MAIN_SHARED_LIB}
                                        ${GMOCK_SHARED_LIB}
                       CMAKE_ARGS ${GTEST_CMAKE_ARGS} ${EP_LOG_OPTIONS})
@@ -1793,11 +1801,11 @@ macro(build_benchmark)
   if(CMAKE_VERSION VERSION_LESS 3.6)
     message(FATAL_ERROR "Building gbenchmark from source requires at least CMake 3.6")
   endif()
-
+if( NOT CMAKE_SYSTEM_PROCESSOR MATCHES "AURORA" )
   if(NOT MSVC)
     set(GBENCHMARK_CMAKE_CXX_FLAGS "${EP_CXX_FLAGS} -std=c++11")
   endif()
-
+endif()
   if(APPLE
      AND (CMAKE_CXX_COMPILER_ID
           STREQUAL
@@ -1928,6 +1936,7 @@ macro(build_xsimd)
                       ${EP_LOG_OPTIONS}
                       PREFIX "${CMAKE_BINARY_DIR}"
                       URL ${XSIMD_SOURCE_URL}
+                      PATCH_COMMAND patch -Np0 < "${CMAKE_SOURCE_DIR}/xsimd_ep.patch"
                       CMAKE_ARGS ${XSIMD_CMAKE_ARGS})
 
   set(XSIMD_INCLUDE_DIR "${XSIMD_PREFIX}/include")
