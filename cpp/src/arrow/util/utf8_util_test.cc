@@ -465,28 +465,34 @@ TEST(UTF8FindIf, Basics) {
     // EXPECT_EQ(std::find_if(begin, end, predicate) - begin, left - begin);
     // EXPECT_EQ(std::find_if(rbegin, rend, predicate).base() - begin, right - begin);
   };
-
+#if defined(__NEC__)
+  char32_t small_alpha = 0x00000251;
+  char32_t small_beta  = 0x000003b2;
+#else
+  char32_t small_alpha = U'ɑ';
+  char32_t small_beta = U'β';
+#endif
   CheckOk("aaaba", 'a', 0, 5);
   CheckOkUTF8("aaaβa", 'a', 0, 6);
 
   CheckOk("aaaba", 'b', 3, 4);
-  CheckOkUTF8("aaaβa", U'β', 3, 5);
+  CheckOkUTF8("aaaβa", small_beta, 3, 5);
 
   CheckOk("aaababa", 'b', 3, 6);
-  CheckOkUTF8("aaaβaβa", U'β', 3, 8);
+  CheckOkUTF8("aaaβaβa", small_beta, 3, 8);
 
   CheckOk("aaababa", 'c', 7, 0);
   CheckOk("aaaβaβa", 'c', 9, 0);
-  CheckOkUTF8("aaaβaβa", U'ɑ', 9, 0);
+  CheckOkUTF8("aaaβaβa", small_alpha, 9, 0);
 
   CheckOk("a", 'a', 0, 1);
-  CheckOkUTF8("ɑ", U'ɑ', 0, 2);
+  CheckOkUTF8("ɑ", small_alpha, 0, 2);
 
   CheckOk("a", 'b', 1, 0);
   CheckOkUTF8("ɑ", 'b', 2, 0);
 
   CheckOk("", 'b', 0, 0);
-  CheckOkUTF8("", U'β', 0, 0);
+  CheckOkUTF8("", small_beta, 0, 0);
 }
 
 }  // namespace util
