@@ -265,8 +265,10 @@ if("${BUILD_WARNING_LEVEL}" STREQUAL "CHECKIN")
     set(CXX_COMMON_FLAGS "${CXX_COMMON_FLAGS} -Wno-constant-logical-operand")
   elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set(CXX_COMMON_FLAGS "${CXX_COMMON_FLAGS} -Wall")
-    set(CXX_COMMON_FLAGS "${CXX_COMMON_FLAGS} -Wno-conversion")
-    set(CXX_COMMON_FLAGS "${CXX_COMMON_FLAGS} -Wno-deprecated-declarations")
+    if(NOT ${ARROW_CPU_FLAG} MATCHES "aurora" )
+      set(CXX_COMMON_FLAGS "${CXX_COMMON_FLAGS} -Wno-conversion")
+      set(CXX_COMMON_FLAGS "${CXX_COMMON_FLAGS} -Wno-deprecated-declarations")
+    endif()
     set(CXX_COMMON_FLAGS "${CXX_COMMON_FLAGS} -Wno-sign-conversion")
     set(CXX_COMMON_FLAGS "${CXX_COMMON_FLAGS} -Wno-unused-variable")
   elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
@@ -347,12 +349,13 @@ if(MSVC)
   # (required for protobuf, see https://github.com/protocolbuffers/protobuf/issues/6885)
   set(CXX_COMMON_FLAGS "${CXX_COMMON_FLAGS} /wd4065")
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-  if(CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "7.0"
-     OR CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "7.0")
-    # Without this, gcc >= 7 warns related to changes in C++17
-    set(CXX_ONLY_FLAGS "${CXX_ONLY_FLAGS} -Wno-noexcept-type")
-  endif()
   if(NOT ${ARROW_CPU_FLAG} MATCHES "aurora" )
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "7.0"
+      OR CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "7.0")
+      # Without this, gcc >= 7 warns related to changes in C++17
+      set(CXX_ONLY_FLAGS "${CXX_ONLY_FLAGS} -Wno-noexcept-type")
+    endif()
+
     if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "5.2")
       # Disabling semantic interposition allows faster calling conventions
       # when calling global functions internally, and can also help inlining.
@@ -571,7 +574,7 @@ endif()
 #   Debug symbols are stripped for reduced binary size. Add
 #   -DARROW_CXXFLAGS="-g" to add them
 if(NOT MSVC)
-  if(ARROW_GGDB_DEBUG)
+  if(ARROW_GGDB_DEBUG AND (NOT ${ARROW_CPU_FLAG} MATCHES "aurora") )
     set(ARROW_DEBUG_SYMBOL_TYPE "gdb")
     set(C_FLAGS_DEBUG "-g${ARROW_DEBUG_SYMBOL_TYPE} -O0")
     set(C_FLAGS_FASTDEBUG "-g${ARROW_DEBUG_SYMBOL_TYPE} -O1")

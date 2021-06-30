@@ -60,3 +60,14 @@
        int i;
        for( i = 0; set; ++i)
            {
+--- boost/system/detail/generic_category_message.hpp	2021-07-01 01:42:29.070924096 +0900
++++ boost/system/detail/generic_category_message_new.hpp	2021-07-01 01:42:21.421924552 +0900
+@@ -23,7 +23,7 @@
+ namespace detail
+ {
+ 
+-#if defined(__GLIBC__)
++#if defined(__GLIBC__) && !defined(__NEC__)
+ 
+ // glibc has two incompatible strerror_r definitions
+ 

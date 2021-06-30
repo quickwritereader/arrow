@@ -731,8 +731,20 @@ macro(build_boost)
     string(REPLACE ";" "," BOOST_CONFIGURE_LIBRARIES "${BOOST_BUILD_WITH_LIBRARIES}")
     list(APPEND BOOST_CONFIGURE_COMMAND "--prefix=${BOOST_PREFIX}"
                 "--with-libraries=${BOOST_CONFIGURE_LIBRARIES}")
-    set(BOOST_BUILD_COMMAND "./b2" "-j${NPROC}" "link=${BOOST_BUILD_LINK}"
-                            "variant=${BOOST_BUILD_VARIANT}")
+
+    set(PATCH_CMD "")
+    set(UPDATE_CMD "")
+    if(CMAKE_SYSTEM_PROCESSOR MATCHES "AURORA")
+        set(BOOST_BUILD_COMMAND "./b2" "toolset=ncc" "-j${NPROC}" "link=${BOOST_BUILD_LINK}"
+                                "variant=${BOOST_BUILD_VARIANT}")
+        #here we are ignoring patch failure on purpose as it was failing when calling the make twice
+        set(PATCH_CMD "patch" "-Np0" < "${CMAKE_SOURCE_DIR}/boost_ep.patch" "||" true)
+        set(UPDATE_CMD ${CMAKE_COMMAND} -E copy  "${CMAKE_SOURCE_DIR}/ncc.jam" tools/build/src/tools/ncc.jam)
+    else()
+        set(BOOST_BUILD_COMMAND "./b2" "-j${NPROC}" "link=${BOOST_BUILD_LINK}"
+                                "variant=${BOOST_BUILD_VARIANT}")
+    endif()
+
     if(MSVC)
       string(REGEX
              REPLACE "([0-9])$" ".\\1" BOOST_TOOLSET_MSVC_VERSION ${MSVC_TOOLSET_VERSION})
@@ -781,17 +793,19 @@ macro(build_boost)
                         URL ${BOOST_SOURCE_URL}
                         BUILD_BYPRODUCTS ${BOOST_BUILD_PRODUCTS}
                         BUILD_IN_SOURCE 1
+                        PATCH_COMMAND ${PATCH_CMD}
+                        UPDATE_COMMAND ${UPDATE_CMD}
                         CONFIGURE_COMMAND ${BOOST_CONFIGURE_COMMAND}
-                        PATCH_COMMAND patch -Np0 < "${CMAKE_SOURCE_DIR}/boost_ep.patch"
                         BUILD_COMMAND ${BOOST_BUILD_COMMAND}
                         INSTALL_COMMAND "" ${EP_LOG_OPTIONS})
+
     list(APPEND ARROW_BUNDLED_STATIC_LIBS boost_system_static boost_filesystem_static)
   else()
     externalproject_add(boost_ep
                         ${EP_LOG_OPTIONS}
                         BUILD_COMMAND ""
+                        PATCH_COMMAND ${PATCH_CMD}
                         CONFIGURE_COMMAND ""
-                        PATCH_COMMAND patch -Np0 < "${CMAKE_SOURCE_DIR}/boost_ep.patch"
                         INSTALL_COMMAND ""
                         URL ${BOOST_SOURCE_URL})
   endif()
