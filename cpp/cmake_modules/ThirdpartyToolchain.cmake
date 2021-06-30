@@ -1306,14 +1306,22 @@ macro(build_thrift)
   if(BOOST_VENDORED)
     set(THRIFT_DEPENDENCIES ${THRIFT_DEPENDENCIES} boost_ep)
   endif()
-
-  externalproject_add(thrift_ep
-                      URL ${THRIFT_SOURCE_URL}
-                      URL_HASH "MD5=${ARROW_THRIFT_BUILD_MD5_CHECKSUM}"
-                      BUILD_BYPRODUCTS "${THRIFT_STATIC_LIB}"
-                      CMAKE_ARGS ${THRIFT_CMAKE_ARGS}
-                      PATCH_COMMAND patch -Np0 < "${CMAKE_SOURCE_DIR}/thrift_ep.patch"
-                      DEPENDS ${THRIFT_DEPENDENCIES} ${EP_LOG_OPTIONS})
+  if(CMAKE_SYSTEM_PROCESSOR MATCHES "AURORA")
+    externalproject_add(thrift_ep
+                        URL ${THRIFT_SOURCE_URL}
+                        URL_HASH "MD5=${ARROW_THRIFT_BUILD_MD5_CHECKSUM}"
+                        BUILD_BYPRODUCTS "${THRIFT_STATIC_LIB}"
+                        CMAKE_ARGS ${THRIFT_CMAKE_ARGS}
+                        PATCH_COMMAND patch -Np0 < "${CMAKE_SOURCE_DIR}/thrift_ep.patch"
+                        DEPENDS ${THRIFT_DEPENDENCIES} ${EP_LOG_OPTIONS})
+  else()
+    externalproject_add(thrift_ep
+                        URL ${THRIFT_SOURCE_URL}
+                        URL_HASH "MD5=${ARROW_THRIFT_BUILD_MD5_CHECKSUM}"
+                        BUILD_BYPRODUCTS "${THRIFT_STATIC_LIB}"
+                        CMAKE_ARGS ${THRIFT_CMAKE_ARGS}
+                        DEPENDS ${THRIFT_DEPENDENCIES} ${EP_LOG_OPTIONS})
+  endif()
 
   add_library(thrift::thrift STATIC IMPORTED)
   # The include directory must exist before it is referenced by a target.
@@ -1687,13 +1695,20 @@ macro(build_gtest)
   if(MSVC AND NOT ARROW_USE_STATIC_CRT)
     set(GTEST_CMAKE_ARGS ${GTEST_CMAKE_ARGS} -Dgtest_force_shared_crt=ON)
   endif()
-
-  externalproject_add(googletest_ep
-                      URL ${GTEST_SOURCE_URL}
-                      PATCH_COMMAND patch -Np0 < "${CMAKE_SOURCE_DIR}/gtest_ep.patch"
-                      BUILD_BYPRODUCTS ${GTEST_SHARED_LIB} ${GTEST_MAIN_SHARED_LIB}
-                                       ${GMOCK_SHARED_LIB}
-                      CMAKE_ARGS ${GTEST_CMAKE_ARGS} ${EP_LOG_OPTIONS})
+  if(CMAKE_SYSTEM_PROCESSOR MATCHES "AURORA")
+    externalproject_add(googletest_ep
+                        URL ${GTEST_SOURCE_URL}
+                        PATCH_COMMAND patch -Np0 < "${CMAKE_SOURCE_DIR}/gtest_ep.patch"
+                        BUILD_BYPRODUCTS ${GTEST_SHARED_LIB} ${GTEST_MAIN_SHARED_LIB}
+                                        ${GMOCK_SHARED_LIB}
+                        CMAKE_ARGS ${GTEST_CMAKE_ARGS} ${EP_LOG_OPTIONS})
+  else()
+    externalproject_add(googletest_ep
+                        URL ${GTEST_SOURCE_URL}
+                        BUILD_BYPRODUCTS ${GTEST_SHARED_LIB} ${GTEST_MAIN_SHARED_LIB}
+                                        ${GMOCK_SHARED_LIB}
+                        CMAKE_ARGS ${GTEST_CMAKE_ARGS} ${EP_LOG_OPTIONS})
+  endif()
   if(WIN32)
     # Copy the built shared libraries to the same directory as our
     # test programs because Windows doesn't provided rpath (run-time
@@ -1946,12 +1961,20 @@ macro(build_xsimd)
   set(XSIMD_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/xsimd_ep/src/xsimd_ep-install")
   set(XSIMD_CMAKE_ARGS ${EP_COMMON_CMAKE_ARGS} "-DCMAKE_INSTALL_PREFIX=${XSIMD_PREFIX}")
 
-  externalproject_add(xsimd_ep
-                      ${EP_LOG_OPTIONS}
-                      PREFIX "${CMAKE_BINARY_DIR}"
-                      URL ${XSIMD_SOURCE_URL}
-                      PATCH_COMMAND patch -Np0 < "${CMAKE_SOURCE_DIR}/xsimd_ep.patch"
-                      CMAKE_ARGS ${XSIMD_CMAKE_ARGS})
+  if(CMAKE_SYSTEM_PROCESSOR MATCHES "AURORA")
+    externalproject_add(xsimd_ep
+                        ${EP_LOG_OPTIONS}
+                        PREFIX "${CMAKE_BINARY_DIR}"
+                        URL ${XSIMD_SOURCE_URL}
+                        PATCH_COMMAND patch -Np0 < "${CMAKE_SOURCE_DIR}/xsimd_ep.patch"
+                        CMAKE_ARGS ${XSIMD_CMAKE_ARGS})
+  else()
+    externalproject_add(xsimd_ep
+                        ${EP_LOG_OPTIONS}
+                        PREFIX "${CMAKE_BINARY_DIR}"
+                        URL ${XSIMD_SOURCE_URL}
+                        CMAKE_ARGS ${XSIMD_CMAKE_ARGS})
+  endif()
 
   set(XSIMD_INCLUDE_DIR "${XSIMD_PREFIX}/include")
 
