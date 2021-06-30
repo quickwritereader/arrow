@@ -1,9 +1,10 @@
 #### tools:
 ```
+#NOTE: there was problem with library as it was added as hardcoded pathes in shared linking. we fixed it using mini-hack as policies and other settings did not work as intended
 $ cmake --version
 cmake version 3.19.3
-
 CMake suite maintained and supported by Kitware (kitware.com/cmake).
+
 $ nc++ --version
 nc++ (NCC) 3.2.1 (Build 18:49:44 Apr 23 2021)
 Copyright (C) 2018,2021 NEC Corporation.
@@ -17,9 +18,12 @@ and install zlib and openssl
 ```
 mkdir -p arrow/cpp/pbuild
 cd arrow/cpp/pbuild
-#just compile
+
+#just shared lib
 cmake  .. -D CMAKE_TOOLCHAIN_FILE=cmake/aurora.cmake -DARROW_PARQUET=ON
 
+#build tests as well
+cmake  .. -D CMAKE_TOOLCHAIN_FILE=cmake/aurora.cmake -DARROW_PARQUET=ON -DARROW_BUILD_TESTS=ON
 
 # with tests linked against staticlibs besides gtest* gmock*.
 cmake  .. -DCMAKE_INSTALL_PREFIX=/opt/nec/ve  -D CMAKE_TOOLCHAIN_FILE=cmake/aurora.cmake -DARROW_PARQUET=ON -DARROW_BUILD_TESTS=ON -DARROW_LINK_SHARED=OFF -DARROW_DEPENDENCY_USE_SHARED=OFF -DARROW_TEST_LINKAGE=static
@@ -28,6 +32,10 @@ make VERBOSE=1
 # as we noted tests still needs gtest libs:
 # assuming you set root arrow directory set arrow_dir=  #${arrow_dir}
 export VE_LD_LIBRARY_PATH=${VE_LD_LIBRARY_PATH}:${arrow_dir}/cpp/pbuild/googletest_ep-prefix/lib
+
+#besides if you built arrow,parquet, arrow_testing shared libraries but not installed you should add them as well
+export VE_LD_LIBRARY_PATH=${VE_LD_LIBRARY_PATH}::${arrow_dir}/cpp/pbuild/release
+
 
 #update submodules if you did not
 git submodule update --init --recursive
