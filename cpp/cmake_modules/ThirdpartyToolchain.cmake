@@ -2294,13 +2294,22 @@ macro(build_utf8proc)
       -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
       -DCMAKE_INSTALL_LIBDIR=lib
       -DBUILD_SHARED_LIBS=OFF)
-
-  externalproject_add(utf8proc_ep
-                      ${EP_LOG_OPTIONS}
-                      CMAKE_ARGS ${UTF8PROC_CMAKE_ARGS}
-                      INSTALL_DIR ${UTF8PROC_PREFIX}
-                      URL ${ARROW_UTF8PROC_SOURCE_URL}
-                      BUILD_BYPRODUCTS "${UTF8PROC_STATIC_LIB}")
+  if(CMAKE_SYSTEM_PROCESSOR MATCHES "AURORA")
+    externalproject_add(utf8proc_ep
+    ${EP_LOG_OPTIONS}
+    PATCH_COMMAND patch -Np0 < "${CMAKE_SOURCE_DIR}/utf8proc_ep.patch"
+    CMAKE_ARGS ${UTF8PROC_CMAKE_ARGS}
+    INSTALL_DIR ${UTF8PROC_PREFIX}
+    URL ${ARROW_UTF8PROC_SOURCE_URL}
+    BUILD_BYPRODUCTS "${UTF8PROC_STATIC_LIB}")
+  else()
+    externalproject_add(utf8proc_ep
+                        ${EP_LOG_OPTIONS}
+                        CMAKE_ARGS ${UTF8PROC_CMAKE_ARGS}
+                        INSTALL_DIR ${UTF8PROC_PREFIX}
+                        URL ${ARROW_UTF8PROC_SOURCE_URL}
+                        BUILD_BYPRODUCTS "${UTF8PROC_STATIC_LIB}")
+  endif()
 
   file(MAKE_DIRECTORY "${UTF8PROC_PREFIX}/include")
   add_library(utf8proc::utf8proc STATIC IMPORTED)

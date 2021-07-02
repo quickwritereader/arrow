@@ -6,7 +6,7 @@
    elseif(CMAKE_${lang}_COMPILER_ID STREQUAL "GNU")
 -    set(CMAKE_${lang}_FLAGS "${CMAKE_${lang}_FLAGS} -Wall -Wextra")
 -    set(CMAKE_${lang}_FLAGS "${CMAKE_${lang}_FLAGS} -fmax-errors=1")
-+    set(CMAKE_${lang}_FLAGS "${CMAKE_${lang}_FLAGS} -Wall ")
++    set(CMAKE_${lang}_FLAGS "${CMAKE_${lang}_FLAGS} -Wall -mno-vector")
 +    
    elseif(CMAKE_${lang}_COMPILER_ID STREQUAL "MSVC")
      set(CMAKE_${lang}_FLAGS "${CMAKE_${lang}_FLAGS} /MP") # parallel build

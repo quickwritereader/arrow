@@ -1,47 +1,55 @@
 #### tools:
-```
-#NOTE: there was problem with library as it was added as hardcoded pathes in shared linking. we fixed it using mini-hack as policies and other settings did not work as intended
-$ cmake --version
-cmake version 3.19.3
-CMake suite maintained and supported by Kitware (kitware.com/cmake).
 
-$ nc++ --version
-nc++ (NCC) 3.2.1 (Build 18:49:44 Apr 23 2021)
-Copyright (C) 2018,2021 NEC Corporation.
-```
-#### zlib and openssl:   
+- cmake version 3.19.3
+- nec compilers >= 3.2.0
+
+Cmake NOTE: there was problem with library as it was added as hardcoded pathes in shared linking. we fixed it using mini-hack as policies and other settings did not work as intended
+
+#### build  zlib and openssl:   
 
 https://github.com/SX-Aurora/ve-python2
 set PREFIX /opt/nec/ve
 and install zlib and openssl
-#### compile (patches downloaded thrift):
+#### build *(patches downloaded thirdparty-libs as well)*
+- export nec path for boost jam file  
+ `export PATH=${PATH}:/opt/nec/ve/bin`
+
+- update submodules to get test data
+  `git submodule update --init --recursive`
+
+- make temp directory for build
 ```
-mkdir -p arrow/cpp/pbuild
-cd arrow/cpp/pbuild
+ export arrow_dir =  /home/???/arrow #paste where is arrow
+ mkdir -p ${arrow_dir}/cpp/pbuild
 
-#just shared lib
-cmake  .. -D CMAKE_TOOLCHAIN_FILE=cmake/aurora.cmake -DARROW_PARQUET=ON
+```
 
-#build tests as well
-cmake  .. -D CMAKE_TOOLCHAIN_FILE=cmake/aurora.cmake -DARROW_PARQUET=ON -DARROW_BUILD_TESTS=ON
-
-# with tests linked against staticlibs besides gtest* gmock*.
-cmake  .. -DCMAKE_INSTALL_PREFIX=/opt/nec/ve  -D CMAKE_TOOLCHAIN_FILE=cmake/aurora.cmake -DARROW_PARQUET=ON -DARROW_BUILD_TESTS=ON -DARROW_LINK_SHARED=OFF -DARROW_DEPENDENCY_USE_SHARED=OFF -DARROW_TEST_LINKAGE=static
+- compile arrow, parquet and tests
+ ```
+ cd ${arrow_dir}/cpp/pbuild
+cmake … -DCMAKE_INSTALL_PREFIX=/opt/nec/ve -D CMAKE_TOOLCHAIN_FILE=cmake/aurora.cmake -DARROW_PARQUET=ON -DARROW_BUILD_TESTS=ON 
 make VERBOSE=1
-
-# as we noted tests still needs gtest libs:
-# assuming you set root arrow directory set arrow_dir=  #${arrow_dir}
+#sudo make install 
+```
+-set directories if libs were not installed
+```
+export VE_LD_LIBRARY_PATH=${VE_LD_LIBRARY_PATH}:${arrow_dir}/cpp/pbuild/release
+```
+- run tests
+```
 export VE_LD_LIBRARY_PATH=${VE_LD_LIBRARY_PATH}:${arrow_dir}/cpp/pbuild/googletest_ep-prefix/lib
-
-#besides if you built arrow,parquet, arrow_testing shared libraries but not installed you should add them as well
-export VE_LD_LIBRARY_PATH=${VE_LD_LIBRARY_PATH}::${arrow_dir}/cpp/pbuild/release
-
-
-#update submodules if you did not
-git submodule update --init --recursive
-
-you can manually set and run individual tests or just use ready scripts in ci/scripts
-
 export ARROW_TEST_DATA=${arrow_dir}/testing/data
 export PARQUET_TEST_DATA=${arrow_dir}/cpp/submodules/parquet-testing/data
+cd ${arrow_dir}/cpp/pbuild
+ctest unittests
 ```
+#### usage
+-  linking against **static libs**.  orders matter
+```
+	export lib_dir=${arrow_dir}/cpp/pbuild/release
+	nc++ file.cpp ${lib_dir}/libparquet.a ${lib_dir}/libarrow.a ${lib_dir}/libarrow_bundled_dependencies.a -pthread -ldl -lrt
+```
+- link against **dynamic libs**
+ 
+```nc++ file.cpp -L${lib_dir} -lparquet -larrow -pthread -ldl -lrt```
+
