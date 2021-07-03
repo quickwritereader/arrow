@@ -27,7 +27,8 @@ and install zlib and openssl
 - compile arrow, parquet and tests
  ```
  cd ${arrow_dir}/cpp/pbuild
-cmake … -DCMAKE_INSTALL_PREFIX=/opt/nec/ve -D CMAKE_TOOLCHAIN_FILE=cmake/aurora.cmake -DARROW_PARQUET=ON -DARROW_BUILD_TESTS=ON 
+ export INSTALL_DIR=/opt/nec/ve
+cmake … -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} -D CMAKE_TOOLCHAIN_FILE=cmake/aurora.cmake -DARROW_PARQUET=ON -DARROW_BUILD_TESTS=ON 
 make VERBOSE=1
 #sudo make install 
 ```
@@ -46,10 +47,11 @@ ctest unittests
 #### usage
 -  linking against **static libs**.  orders matter
 ```
-	export lib_dir=${arrow_dir}/cpp/pbuild/release
-	nc++ file.cpp ${lib_dir}/libparquet.a ${lib_dir}/libarrow.a ${lib_dir}/libarrow_bundled_dependencies.a -pthread -ldl -lrt
+	export lib_dir=${INSTALL_DIR}/lib
+	export include_dir=${INSTALL_DIR}/include
+	nc++ file.cpp -I${include_dir} ${lib_dir}/libparquet.a ${lib_dir}/libarrow.a ${lib_dir}/libarrow_bundled_dependencies.a -pthread
 ```
 - link against **dynamic libs**
  
-```nc++ file.cpp -L${lib_dir} -lparquet -larrow -pthread -ldl -lrt```
+```nc++ file.cpp  -I${include_dir} -L${lib_dir} -lparquet -larrow -pthread -ldl -lrt```
 
