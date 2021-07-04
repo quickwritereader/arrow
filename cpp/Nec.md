@@ -9,13 +9,27 @@ Cmake NOTE: there was problem with library as it was added as hardcoded pathes i
 
 https://github.com/SX-Aurora/ve-python2
 set PREFIX /opt/nec/ve
-and install zlib and openssl
+and install zlib and openssl  
+```
+git clone https://github.com/SX-Aurora/ve-python2.git
+
+cd ve-python2
+sed -i 's|PREFIX=`pwd`/usr|PREFIX=/opt/nec/ve/|' env.sh
+
+#run with sudo to install them in /opt/nec/ve
+sudo ./01a_build_zlib.sh
+sudo ./01c_build_openssl.sh
+
+```
+
 #### build *(patches downloaded thirdparty-libs as well)*
 - export nec path for boost jam file  
  `export PATH=${PATH}:/opt/nec/ve/bin`
 
 - update submodules to get test data
-  `git submodule update --init --recursive`
+```
+git submodule update --init --recursive
+```
 
 - make temp directory for build
 ```
@@ -28,11 +42,11 @@ and install zlib and openssl
  ```
  cd ${arrow_dir}/cpp/pbuild
  export INSTALL_DIR=/opt/nec/ve
-cmake … -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} -D CMAKE_TOOLCHAIN_FILE=cmake/aurora.cmake -DARROW_PARQUET=ON -DARROW_BUILD_TESTS=ON 
+cmake … -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} -D CMAKE_TOOLCHAIN_FILE=cmake/aurora.cmake -DARROW_PARQUET=ON -DARROW_BUILD_TESTS=ON -DARROW_WITH_SNAPPY=ON 
 make VERBOSE=1
 #sudo make install 
 ```
--set directories if libs were not installed
+- set directories if libs were not installed in /opt/nec/ve
 ```
 export VE_LD_LIBRARY_PATH=${VE_LD_LIBRARY_PATH}:${arrow_dir}/cpp/pbuild/release
 ```
