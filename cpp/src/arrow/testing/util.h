@@ -34,6 +34,7 @@
 #include "arrow/testing/visibility.h"
 #include "arrow/type_fwd.h"
 #include "arrow/util/macros.h"
+#include "arrow/util/functional.h"
 #include "arrow/visitor_inline.h"
 
 namespace arrow {
@@ -122,8 +123,11 @@ template <typename Fn>
 struct VisitBuilderImpl {
 
 #if defined(__NEC__)
-  template <typename T, typename BuilderType = typename TypeTraits<T>::BuilderType, typename E>
-  typename internal::call_traits::enable_if_return<E, Status>::type Visit(const T&) {
+  template <typename T, typename BuilderType = typename TypeTraits<T>::BuilderType,
+            // need to let SFINAE drop this Visit when it would result in
+            // [](NullBuilder*){}(double_builder)
+            typename E = result_of_t_sfinae<Fn(BuilderType*)>>
+  Status Visit(const T&) {
     fn_(internal::checked_cast<BuilderType*>(builder_));
     return Status::OK();
   }
