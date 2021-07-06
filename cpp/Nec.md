@@ -42,8 +42,8 @@ git submodule update --init --recursive
  ```
  cd ${arrow_dir}/cpp/pbuild
  export INSTALL_DIR=/opt/nec/ve
-cmake … -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} -D CMAKE_TOOLCHAIN_FILE=cmake/aurora.cmake -DARROW_PARQUET=ON -DARROW_BUILD_TESTS=ON -DARROW_WITH_SNAPPY=ON 
-make VERBOSE=1
+cmake .. -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} -D CMAKE_TOOLCHAIN_FILE=cmake/aurora.cmake -DARROW_PARQUET=ON -DARROW_BUILD_TESTS=ON -DARROW_WITH_SNAPPY=ON 
+make VERBOSE=1 -j $((2*$(nproc)))
 #sudo make install 
 ```
 - set directories if libs were not installed in /opt/nec/ve
