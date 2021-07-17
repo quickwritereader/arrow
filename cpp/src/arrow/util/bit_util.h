@@ -31,7 +31,6 @@
 
 template < typename T > std::size_t popcount( const T& v )
 {
-    static_assert( std::is_integral<T>::value && std::is_unsigned<T>::value, "an unsigned integral type expected" ) ;
     return std::bitset< std::numeric_limits<T>::digits >(v).count() ;
 }
 

@@ -26,7 +26,7 @@
 
 #include "arrow/status.h"
 #include "arrow/util/compare.h"
-#include "arrow/util/functional.h"
+#include "arrow/util/nec_result_of.h"
 namespace arrow {
 
 template <typename>
