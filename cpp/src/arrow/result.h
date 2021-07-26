@@ -26,7 +26,7 @@
 
 #include "arrow/status.h"
 #include "arrow/util/compare.h"
-#include "arrow/util/nec_result_of.h"
+#include "arrow/util/nec_helpers.h"
 namespace arrow {
 
 template <typename>
@@ -386,7 +386,7 @@ class ARROW_MUST_USE_TYPE Result : public util::EqualityComparable<Result<T>> {
   /// the stored error.
   template <typename M>
 #if defined(__NEC__)
-  typename EnsureResult< result_of_t_sfinae<M && (T)> >::type
+  typename EnsureResult< nec_helpers::result_of_t<M && (T)> >::type
 #else
   typename EnsureResult<typename std::result_of<M && (T)>::type>::type
 #endif
@@ -401,7 +401,7 @@ class ARROW_MUST_USE_TYPE Result : public util::EqualityComparable<Result<T>> {
   /// the stored error.
   template <typename M>
 #if defined(__NEC__)
-  typename EnsureResult< result_of_t_sfinae<M && (T)> >::type
+  typename EnsureResult< nec_helpers::result_of_t<M && (T)> >::type
 #else
   typename EnsureResult<typename std::result_of<M && (T)>::type>::type
 #endif

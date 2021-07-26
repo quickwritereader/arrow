@@ -33,7 +33,7 @@
 #include "arrow/util/optional.h"
 #include "arrow/util/type_fwd.h"
 #include "arrow/util/visibility.h"
-
+#include "arrow/util/nec_helpers.h"
 namespace arrow {
 
 template <typename>
@@ -48,11 +48,11 @@ template <typename T>
 struct is_future<Future<T>> : std::true_type {};
 
 #if defined(__NEC__)
-template <typename Signature>
-using result_of_t = typename result_of_sfinae<Signature>::type;
+ template <typename Signature>
+ using result_of_t = typename nec_helpers::result_of<Signature>::type;
 #else
-template <typename Signature>
-using result_of_t = typename std::result_of<Signature>::type;
+ template <typename Signature>
+ using result_of_t = typename std::result_of<Signature>::type;
 #endif
 
 // Helper to find the synchronous counterpart for a Future

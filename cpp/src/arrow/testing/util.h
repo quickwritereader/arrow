@@ -126,7 +126,7 @@ struct VisitBuilderImpl {
   template <typename T, typename BuilderType = typename TypeTraits<T>::BuilderType,
             // need to let SFINAE drop this Visit when it would result in
             // [](NullBuilder*){}(double_builder)
-            typename E = result_of_t_sfinae<Fn(BuilderType*)>>
+            typename E = nec_helpers::result_of_t<Fn(BuilderType*)>>
   Status Visit(const T&) {
     fn_(internal::checked_cast<BuilderType*>(builder_));
     return Status::OK();

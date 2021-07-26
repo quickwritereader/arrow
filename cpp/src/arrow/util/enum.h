@@ -150,7 +150,7 @@ struct EnumType : EnumTypeTag {
   int index = -1;
 
   friend inline void PrintTo(const EnumType& e, std::ostream* os) {
-    PrintTo(e.ToString(), os);
+    if(os) *os << e.ToString();
   }
 };
 

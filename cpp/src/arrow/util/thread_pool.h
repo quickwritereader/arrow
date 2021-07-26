@@ -26,7 +26,7 @@
 #include <queue>
 #include <type_traits>
 #include <utility>
-
+#include <iostream>
 #include "arrow/result.h"
 #include "arrow/status.h"
 #include "arrow/util/cancel.h"
@@ -147,8 +147,33 @@ class ARROW_EXPORT Executor {
     using ValueType = typename FutureType::ValueType;
 
     auto future = FutureType::Make();
-    auto task = std::bind(::arrow::detail::ContinueFuture{}, future,
+
+    #if  defined(__NEC__)
+
+    #if defined(FIX_WITH_COPY_)
+        auto ff = func;
+        auto task = [future, ff, args...]{ 
+          ::arrow::detail::ContinueFuture ctf;
+          return ctf(future,  ff,  args... );
+
+        };
+    #else
+        //fix tuple incomplete type with explicit capture of future
+        //try to capture other args with tuple and perfect forwarding. (note if it does properly forward we will need better implementation)
+        auto  task =   [future, capture_args = std::make_tuple( std::forward<Function>(func), std::forward<Args>(args) ...)] () { 
+              return nec_helpers::apply([&future](auto&& ... c_args) {
+                        ::arrow::detail::ContinueFuture ctf;
+                        return ctf(future, std::forward<decltype(c_args)>(c_args) ...);
+                   }
+                 , std::move(capture_args)
+              );
+        };
+
+    #endif
+    #else
+      auto task = std::bind(::arrow::detail::ContinueFuture{}, future,
                           std::forward<Function>(func), std::forward<Args>(args)...);
+    #endif
     struct {
       WeakFuture<ValueType> weak_fut;
 
