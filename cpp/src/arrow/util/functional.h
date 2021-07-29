@@ -126,15 +126,10 @@ template <typename R, typename... A>
 class FnOnce<R(A...)> {
  public:
   FnOnce() = default;
-#if defined(__NEC__)
+
   template <typename Fn,
             typename = typename std::enable_if<std::is_convertible<
-                nec_helpers::result_of_t<Fn && (A...)>, R>::value>::type>
-#else
-  template <typename Fn,
-            typename = typename std::enable_if<std::is_convertible<
-                typename std::result_of<Fn && (A...)>::type, R>::value>::type>
-#endif
+                decltype(std::declval<Fn&&>()(std::declval<A>()...)), R>::value>::type>
   FnOnce(Fn fn) : impl_(new FnImpl<Fn>(std::move(fn))) {  // NOLINT runtime/explicit
   }
 

@@ -18,6 +18,7 @@
 #pragma once
 
 #include <cmath>
+#include <utility>
 
 #include "arrow/compute/api_aggregate.h"
 #include "arrow/compute/kernels/aggregate_internal.h"
@@ -67,7 +68,8 @@ struct SumImpl : public ScalarAggregator {
             static_cast<typename SumType::c_type>(BooleanArray(data).true_count());
       } else {
         this->sum +=
-            arrow::compute::detail::SumArray<CType, typename SumType::c_type>(*data);
+            arrow::compute::detail::SumArray<CType, typename SumType::c_type, SimdLevel>(
+                *data);
       }
     } else {
       const auto& data = *batch[0].scalar();
@@ -232,9 +234,8 @@ struct MinMaxImpl : public ScalarAggregator {
   using ThisType = MinMaxImpl<ArrowType, SimdLevel>;
   using StateType = MinMaxState<ArrowType, SimdLevel>;
 
-  MinMaxImpl(const std::shared_ptr<DataType>& out_type,
-             const ScalarAggregateOptions& options)
-      : out_type(out_type), options(options) {}
+  MinMaxImpl(std::shared_ptr<DataType> out_type, ScalarAggregateOptions options)
+      : out_type(std::move(out_type)), options(std::move(options)) {}
 
   Status Consume(KernelContext*, const ExecBatch& batch) override {
     if (batch[0].is_array()) {

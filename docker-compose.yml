@@ -792,7 +792,10 @@ services:
     shm_size: 2G
     volumes:
       - .:/arrow:delegated
-    command: /arrow/ci/scripts/python_wheel_manylinux_test.sh imports
+    environment:
+      CHECK_IMPORTS: "ON"
+      CHECK_UNITTESTS: "OFF"
+    command: /arrow/ci/scripts/python_wheel_unix_test.sh /arrow
 
   python-wheel-manylinux-test-unittests:
     image: ${REPO}:${ARCH}-python-${PYTHON}-wheel-manylinux-test
@@ -807,9 +810,22 @@ services:
     shm_size: 2G
     volumes:
       - .:/arrow:delegated
-    command: /arrow/ci/scripts/python_wheel_manylinux_test.sh unittests
+    environment:
+      CHECK_IMPORTS: "OFF"
+      CHECK_UNITTESTS: "ON"
+    command: /arrow/ci/scripts/python_wheel_unix_test.sh /arrow
 
   python-wheel-windows-vs2017:
+    # The windows images must be built locally and pushed to a remote registry:
+    # export REPO=ghcr.io/ursacomputing/arrow
+    # PYTHON=3.6 archery docker build --no-pull --using-docker-cli python-wheel-windows-vs2017
+    # PYTHON=3.7 archery docker build --no-pull --using-docker-cli python-wheel-windows-vs2017
+    # PYTHON=3.8 archery docker build --no-pull --using-docker-cli python-wheel-windows-vs2017
+    # PYTHON=3.9 archery docker build --no-pull --using-docker-cli python-wheel-windows-vs2017
+    # PYTHON=3.6 archery docker push python-wheel-windows-vs2017
+    # PYTHON=3.7 archery docker push python-wheel-windows-vs2017
+    # PYTHON=3.8 archery docker push python-wheel-windows-vs2017
+    # PYTHON=3.9 archery docker push python-wheel-windows-vs2017
     image: ${REPO}:python-${PYTHON}-wheel-windows-vs2017-vcpkg-${VCPKG}
     build:
       args:
