@@ -5,7 +5,7 @@
    set_target_properties(
      utf8proc PROPERTIES
 -    COMPILE_FLAGS "-O2 -std=c99 -pedantic -Wall"
-+    COMPILE_FLAGS "-mno-vector -fdiag-vector=0 -traceback -std=c99 -pedantic -Wall"
++    COMPILE_FLAGS "-O2 -mno-vector -fdiag-vector=0 -traceback -std=c99 -pedantic -Wall"
    )
  endif ()
  

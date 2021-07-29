@@ -612,6 +612,10 @@ endif()
 
 # ----------------------------------------------------------------------
 # ExternalProject options
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "AURORA")
+  set(CMAKE_C_FLAGS_RELEASE "" )
+  set(CMAKE_CXX_FLAGS_RELEASE "" )
+endif()
 
 set(EP_CXX_FLAGS
     "${CMAKE_CXX_COMPILER_ARG1} ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${UPPERCASE_BUILD_TYPE}}"
