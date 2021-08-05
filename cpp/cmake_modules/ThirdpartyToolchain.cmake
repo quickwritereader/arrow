@@ -1820,13 +1820,22 @@ macro(build_benchmark)
   if(CMAKE_VERSION VERSION_LESS 3.6)
     message(FATAL_ERROR "Building gbenchmark from source requires at least CMake 3.6")
   endif()
-if( NOT CMAKE_SYSTEM_PROCESSOR MATCHES "AURORA" )
-  if(NOT MSVC)
-    set(GBENCHMARK_CMAKE_CXX_FLAGS "${EP_CXX_FLAGS} -std=c++11")
+  if( NOT CMAKE_SYSTEM_PROCESSOR MATCHES "AURORA" )
+    if(NOT MSVC)
+      set(GBENCHMARK_CMAKE_CXX_FLAGS "${EP_CXX_FLAGS} -std=c++11")
+    endif()
   endif()
   if(APPLE AND (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" OR CMAKE_CXX_COMPILER_ID
                                                                STREQUAL "Clang"))
     set(GBENCHMARK_CMAKE_CXX_FLAGS "${GBENCHMARK_CMAKE_CXX_FLAGS} -stdlib=libc++")
+  endif()
+
+  set(GBENCHMARK_PREFIX
+      "${CMAKE_CURRENT_BINARY_DIR}/gbenchmark_ep/src/gbenchmark_ep-install")
+  set(GBENCHMARK_INCLUDE_DIR "${GBENCHMARK_PREFIX}/include")
+  set(GBENCHMARK_STATIC_LIB
+      "${GBENCHMARK_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}benchmark${CMAKE_STATIC_LIBRARY_SUFFIX}"
+  )
   set(GBENCHMARK_MAIN_STATIC_LIB
       "${GBENCHMARK_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}benchmark_main${CMAKE_STATIC_LIBRARY_SUFFIX}"
   )
@@ -1840,11 +1849,21 @@ if( NOT CMAKE_SYSTEM_PROCESSOR MATCHES "AURORA" )
     set(GBENCHMARK_CMAKE_ARGS ${GBENCHMARK_CMAKE_ARGS} "-DBENCHMARK_USE_LIBCXX=ON")
   endif()
 
-  externalproject_add(gbenchmark_ep
-                      URL ${GBENCHMARK_SOURCE_URL}
-                      BUILD_BYPRODUCTS "${GBENCHMARK_STATIC_LIB}"
-                                       "${GBENCHMARK_MAIN_STATIC_LIB}"
-                      CMAKE_ARGS ${GBENCHMARK_CMAKE_ARGS} ${EP_LOG_OPTIONS})
+  if( ${ARROW_CPU_FLAG} MATCHES "aurora" )
+    externalproject_add(gbenchmark_ep
+                        URL ${GBENCHMARK_SOURCE_URL}
+                        BUILD_BYPRODUCTS "${GBENCHMARK_STATIC_LIB}"
+                                        "${GBENCHMARK_MAIN_STATIC_LIB}"
+                        PATCH_COMMAND patch -Np0 < "${CMAKE_SOURCE_DIR}/gbenchmark_ep.patch"
+                        CMAKE_ARGS ${GBENCHMARK_CMAKE_ARGS} ${EP_LOG_OPTIONS})
+
+  else()
+    externalproject_add(gbenchmark_ep
+                        URL ${GBENCHMARK_SOURCE_URL}
+                        BUILD_BYPRODUCTS "${GBENCHMARK_STATIC_LIB}"
+                                        "${GBENCHMARK_MAIN_STATIC_LIB}"
+                        CMAKE_ARGS ${GBENCHMARK_CMAKE_ARGS} ${EP_LOG_OPTIONS})
+  endif()
 
   # The include directory must exist before it is referenced by a target.
   file(MAKE_DIRECTORY "${GBENCHMARK_INCLUDE_DIR}")

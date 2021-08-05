@@ -587,11 +587,23 @@ function(ADD_BENCHMARK REL_BENCHMARK_NAME)
     set(BENCHMARK_PATH "${EXECUTABLE_OUTPUT_PATH}/${BENCHMARK_NAME}")
     add_executable(${BENCHMARK_NAME} "${REL_BENCHMARK_NAME}.cc")
 
-    if(ARG_STATIC_LINK_LIBS)
-      # Customize link libraries
-      target_link_libraries(${BENCHMARK_NAME} PRIVATE ${ARG_STATIC_LINK_LIBS})
+    if( ${ARROW_CPU_FLAG} MATCHES "aurora" )
+
+      if(ARG_STATIC_LINK_LIBS)
+        FIX_HARDCODED_SHARED("${BENCHMARK_NAME}" "${EXECUTABLE_OUTPUT_PATH}" ARG_STATIC_LINK_LIBS)
+        target_link_libraries(${BENCHMARK_NAME} PRIVATE "$<BUILD_INTERFACE:${ARG_STATIC_LINK_LIBS}>")
+      else()
+        FIX_HARDCODED_SHARED("${BENCHMARK_NAME}" "${EXECUTABLE_OUTPUT_PATH}" ARROW_BENCHMARK_LINK_LIBS)
+        target_link_libraries(${BENCHMARK_NAME} PRIVATE "$<BUILD_INTERFACE:${ARROW_BENCHMARK_LINK_LIBS}>")
+      endif()
+
     else()
-      target_link_libraries(${BENCHMARK_NAME} PRIVATE ${ARROW_BENCHMARK_LINK_LIBS})
+      if(ARG_STATIC_LINK_LIBS)
+        # Customize link libraries
+        target_link_libraries(${BENCHMARK_NAME} PRIVATE ${ARG_STATIC_LINK_LIBS})
+      else()
+        target_link_libraries(${BENCHMARK_NAME} PRIVATE ${ARROW_BENCHMARK_LINK_LIBS})
+      endif()
     endif()
     add_dependencies(benchmark ${BENCHMARK_NAME})
     set(NO_COLOR "--color_print=false")

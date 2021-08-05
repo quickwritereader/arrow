@@ -1,0 +1,11 @@
+--- src/cycleclock.h	2020-09-11 18:55:18.000000000 +0900
++++ src/cycleclock_new.h	2021-08-05 08:24:23.007114365 +0900
+@@ -161,7 +161,7 @@
+   struct timeval tv;
+   gettimeofday(&tv, nullptr);
+   return static_cast<int64_t>(tv.tv_sec) * 1000000 + tv.tv_usec;
+-#elif defined(__mips__)
++#elif defined(__mips__) || defined(__NEC__)
+   // mips apparently only allows rdtsc for superusers, so we fall
+   // back to gettimeofday.  It's possible clock_gettime would be better.
+   struct timeval tv;
