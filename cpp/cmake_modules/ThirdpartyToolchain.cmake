@@ -612,6 +612,10 @@ endif()
 
 # ----------------------------------------------------------------------
 # ExternalProject options
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "AURORA")
+  set(CMAKE_C_FLAGS_RELEASE "" )
+  set(CMAKE_CXX_FLAGS_RELEASE "" )
+endif()
 
 set(EP_CXX_FLAGS
     "${CMAKE_CXX_COMPILER_ARG1} ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${UPPERCASE_BUILD_TYPE}}"
@@ -722,9 +726,21 @@ macro(build_boost)
     set(BOOST_BUILD_WITH_LIBRARIES "filesystem" "system")
     string(REPLACE ";" "," BOOST_CONFIGURE_LIBRARIES "${BOOST_BUILD_WITH_LIBRARIES}")
     list(APPEND BOOST_CONFIGURE_COMMAND "--prefix=${BOOST_PREFIX}"
-         "--with-libraries=${BOOST_CONFIGURE_LIBRARIES}")
-    set(BOOST_BUILD_COMMAND "./b2" "-j${NPROC}" "link=${BOOST_BUILD_LINK}"
-                            "variant=${BOOST_BUILD_VARIANT}")
+                "--with-libraries=${BOOST_CONFIGURE_LIBRARIES}")
+
+    set(PATCH_CMD "")
+    set(UPDATE_CMD "")
+    if(CMAKE_SYSTEM_PROCESSOR MATCHES "AURORA")
+        set(BOOST_BUILD_COMMAND "./b2" "toolset=ncc" "-j${NPROC}" "link=${BOOST_BUILD_LINK}"
+                                "variant=${BOOST_BUILD_VARIANT}")
+        #here we are ignoring patch failure on purpose as it was failing when calling the make twice
+        set(PATCH_CMD "patch" "-Np0" < "${CMAKE_SOURCE_DIR}/boost_ep.patch" "||" true)
+        set(UPDATE_CMD ${CMAKE_COMMAND} -E copy  "${CMAKE_SOURCE_DIR}/ncc.jam" tools/build/src/tools/ncc.jam)
+    else()
+        set(BOOST_BUILD_COMMAND "./b2" "-j${NPROC}" "link=${BOOST_BUILD_LINK}"
+                                "variant=${BOOST_BUILD_VARIANT}")
+    endif()
+
     if(MSVC)
       string(REGEX REPLACE "([0-9])$" ".\\1" BOOST_TOOLSET_MSVC_VERSION
                            ${MSVC_TOOLSET_VERSION})
@@ -771,14 +787,18 @@ macro(build_boost)
                         URL ${BOOST_SOURCE_URL}
                         BUILD_BYPRODUCTS ${BOOST_BUILD_PRODUCTS}
                         BUILD_IN_SOURCE 1
+                        PATCH_COMMAND ${PATCH_CMD}
+                        UPDATE_COMMAND ${UPDATE_CMD}
                         CONFIGURE_COMMAND ${BOOST_CONFIGURE_COMMAND}
                         BUILD_COMMAND ${BOOST_BUILD_COMMAND}
                         INSTALL_COMMAND "" ${EP_LOG_OPTIONS})
+
     list(APPEND ARROW_BUNDLED_STATIC_LIBS boost_system_static boost_filesystem_static)
   else()
     externalproject_add(boost_ep
                         ${EP_LOG_OPTIONS}
                         BUILD_COMMAND ""
+                        PATCH_COMMAND ${PATCH_CMD}
                         CONFIGURE_COMMAND ""
                         INSTALL_COMMAND ""
                         URL ${BOOST_SOURCE_URL})
@@ -1282,13 +1302,22 @@ macro(build_thrift)
   if(BOOST_VENDORED)
     set(THRIFT_DEPENDENCIES ${THRIFT_DEPENDENCIES} boost_ep)
   endif()
-
-  externalproject_add(thrift_ep
-                      URL ${THRIFT_SOURCE_URL}
-                      URL_HASH "MD5=${ARROW_THRIFT_BUILD_MD5_CHECKSUM}"
-                      BUILD_BYPRODUCTS "${THRIFT_STATIC_LIB}"
-                      CMAKE_ARGS ${THRIFT_CMAKE_ARGS}
-                      DEPENDS ${THRIFT_DEPENDENCIES} ${EP_LOG_OPTIONS})
+  if(CMAKE_SYSTEM_PROCESSOR MATCHES "AURORA")
+    externalproject_add(thrift_ep
+                        URL ${THRIFT_SOURCE_URL}
+                        URL_HASH "MD5=${ARROW_THRIFT_BUILD_MD5_CHECKSUM}"
+                        BUILD_BYPRODUCTS "${THRIFT_STATIC_LIB}"
+                        CMAKE_ARGS ${THRIFT_CMAKE_ARGS}
+                        PATCH_COMMAND patch -Np0 < "${CMAKE_SOURCE_DIR}/thrift_ep.patch"
+                        DEPENDS ${THRIFT_DEPENDENCIES} ${EP_LOG_OPTIONS})
+  else()
+    externalproject_add(thrift_ep
+                        URL ${THRIFT_SOURCE_URL}
+                        URL_HASH "MD5=${ARROW_THRIFT_BUILD_MD5_CHECKSUM}"
+                        BUILD_BYPRODUCTS "${THRIFT_STATIC_LIB}"
+                        CMAKE_ARGS ${THRIFT_CMAKE_ARGS}
+                        DEPENDS ${THRIFT_DEPENDENCIES} ${EP_LOG_OPTIONS})
+  endif()
 
   add_library(thrift::thrift STATIC IMPORTED)
   # The include directory must exist before it is referenced by a target.
@@ -1481,6 +1510,10 @@ if(ARROW_WITH_PROTOBUF)
   message(STATUS "Found protobuf headers: ${PROTOBUF_INCLUDE_DIR}")
 endif()
 
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "AURORA")
+  set(ARROW_JEMALLOC off)
+endif()
+
 # ----------------------------------------------------------------------
 # jemalloc - Unix-only high-performance allocator
 
@@ -1663,12 +1696,20 @@ macro(build_gtest)
   if(MSVC AND NOT ARROW_USE_STATIC_CRT)
     set(GTEST_CMAKE_ARGS ${GTEST_CMAKE_ARGS} -Dgtest_force_shared_crt=ON)
   endif()
-
-  externalproject_add(googletest_ep
-                      URL ${GTEST_SOURCE_URL}
-                      BUILD_BYPRODUCTS ${GTEST_SHARED_LIB} ${GTEST_MAIN_SHARED_LIB}
-                                       ${GMOCK_SHARED_LIB}
-                      CMAKE_ARGS ${GTEST_CMAKE_ARGS} ${EP_LOG_OPTIONS})
+  if(CMAKE_SYSTEM_PROCESSOR MATCHES "AURORA")
+    externalproject_add(googletest_ep
+                        URL ${GTEST_SOURCE_URL}
+                        PATCH_COMMAND patch -Np0 < "${CMAKE_SOURCE_DIR}/gtest_ep.patch"
+                        BUILD_BYPRODUCTS ${GTEST_SHARED_LIB} ${GTEST_MAIN_SHARED_LIB}
+                                        ${GMOCK_SHARED_LIB}
+                        CMAKE_ARGS ${GTEST_CMAKE_ARGS} ${EP_LOG_OPTIONS})
+  else()
+    externalproject_add(googletest_ep
+                        URL ${GTEST_SOURCE_URL}
+                        BUILD_BYPRODUCTS ${GTEST_SHARED_LIB} ${GTEST_MAIN_SHARED_LIB}
+                                        ${GMOCK_SHARED_LIB}
+                        CMAKE_ARGS ${GTEST_CMAKE_ARGS} ${EP_LOG_OPTIONS})
+  endif()
   if(WIN32)
     # Copy the built shared libraries to the same directory as our
     # test programs because Windows doesn't provided rpath (run-time
@@ -1779,11 +1820,11 @@ macro(build_benchmark)
   if(CMAKE_VERSION VERSION_LESS 3.6)
     message(FATAL_ERROR "Building gbenchmark from source requires at least CMake 3.6")
   endif()
-
-  if(NOT MSVC)
-    set(GBENCHMARK_CMAKE_CXX_FLAGS "${EP_CXX_FLAGS} -std=c++11")
+  if( NOT CMAKE_SYSTEM_PROCESSOR MATCHES "AURORA" )
+    if(NOT MSVC)
+      set(GBENCHMARK_CMAKE_CXX_FLAGS "${EP_CXX_FLAGS} -std=c++11")
+    endif()
   endif()
-
   if(APPLE AND (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" OR CMAKE_CXX_COMPILER_ID
                                                                STREQUAL "Clang"))
     set(GBENCHMARK_CMAKE_CXX_FLAGS "${GBENCHMARK_CMAKE_CXX_FLAGS} -stdlib=libc++")
@@ -1808,11 +1849,21 @@ macro(build_benchmark)
     set(GBENCHMARK_CMAKE_ARGS ${GBENCHMARK_CMAKE_ARGS} "-DBENCHMARK_USE_LIBCXX=ON")
   endif()
 
-  externalproject_add(gbenchmark_ep
-                      URL ${GBENCHMARK_SOURCE_URL}
-                      BUILD_BYPRODUCTS "${GBENCHMARK_STATIC_LIB}"
-                                       "${GBENCHMARK_MAIN_STATIC_LIB}"
-                      CMAKE_ARGS ${GBENCHMARK_CMAKE_ARGS} ${EP_LOG_OPTIONS})
+  if( ${ARROW_CPU_FLAG} MATCHES "aurora" )
+    externalproject_add(gbenchmark_ep
+                        URL ${GBENCHMARK_SOURCE_URL}
+                        BUILD_BYPRODUCTS "${GBENCHMARK_STATIC_LIB}"
+                                        "${GBENCHMARK_MAIN_STATIC_LIB}"
+                        PATCH_COMMAND patch -Np0 < "${CMAKE_SOURCE_DIR}/gbenchmark_ep.patch"
+                        CMAKE_ARGS ${GBENCHMARK_CMAKE_ARGS} ${EP_LOG_OPTIONS})
+
+  else()
+    externalproject_add(gbenchmark_ep
+                        URL ${GBENCHMARK_SOURCE_URL}
+                        BUILD_BYPRODUCTS "${GBENCHMARK_STATIC_LIB}"
+                                        "${GBENCHMARK_MAIN_STATIC_LIB}"
+                        CMAKE_ARGS ${GBENCHMARK_CMAKE_ARGS} ${EP_LOG_OPTIONS})
+  endif()
 
   # The include directory must exist before it is referenced by a target.
   file(MAKE_DIRECTORY "${GBENCHMARK_INCLUDE_DIR}")
@@ -1897,11 +1948,20 @@ macro(build_xsimd)
   set(XSIMD_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/xsimd_ep/src/xsimd_ep-install")
   set(XSIMD_CMAKE_ARGS ${EP_COMMON_CMAKE_ARGS} "-DCMAKE_INSTALL_PREFIX=${XSIMD_PREFIX}")
 
-  externalproject_add(xsimd_ep
-                      ${EP_LOG_OPTIONS}
-                      PREFIX "${CMAKE_BINARY_DIR}"
-                      URL ${XSIMD_SOURCE_URL}
-                      CMAKE_ARGS ${XSIMD_CMAKE_ARGS})
+  if(CMAKE_SYSTEM_PROCESSOR MATCHES "AURORA")
+    externalproject_add(xsimd_ep
+                        ${EP_LOG_OPTIONS}
+                        PREFIX "${CMAKE_BINARY_DIR}"
+                        URL ${XSIMD_SOURCE_URL}
+                        PATCH_COMMAND patch -Np0 < "${CMAKE_SOURCE_DIR}/xsimd_ep.patch"
+                        CMAKE_ARGS ${XSIMD_CMAKE_ARGS})
+  else()
+    externalproject_add(xsimd_ep
+                        ${EP_LOG_OPTIONS}
+                        PREFIX "${CMAKE_BINARY_DIR}"
+                        URL ${XSIMD_SOURCE_URL}
+                        CMAKE_ARGS ${XSIMD_CMAKE_ARGS})
+  endif()
 
   set(XSIMD_INCLUDE_DIR "${XSIMD_PREFIX}/include")
 
@@ -2227,13 +2287,22 @@ macro(build_utf8proc)
       -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
       -DCMAKE_INSTALL_LIBDIR=lib
       -DBUILD_SHARED_LIBS=OFF)
-
-  externalproject_add(utf8proc_ep
-                      ${EP_LOG_OPTIONS}
-                      CMAKE_ARGS ${UTF8PROC_CMAKE_ARGS}
-                      INSTALL_DIR ${UTF8PROC_PREFIX}
-                      URL ${ARROW_UTF8PROC_SOURCE_URL}
-                      BUILD_BYPRODUCTS "${UTF8PROC_STATIC_LIB}")
+  if(CMAKE_SYSTEM_PROCESSOR MATCHES "AURORA")
+    externalproject_add(utf8proc_ep
+    ${EP_LOG_OPTIONS}
+    PATCH_COMMAND patch -Np0 < "${CMAKE_SOURCE_DIR}/utf8proc_ep.patch"
+    CMAKE_ARGS ${UTF8PROC_CMAKE_ARGS}
+    INSTALL_DIR ${UTF8PROC_PREFIX}
+    URL ${ARROW_UTF8PROC_SOURCE_URL}
+    BUILD_BYPRODUCTS "${UTF8PROC_STATIC_LIB}")
+  else()
+    externalproject_add(utf8proc_ep
+                        ${EP_LOG_OPTIONS}
+                        CMAKE_ARGS ${UTF8PROC_CMAKE_ARGS}
+                        INSTALL_DIR ${UTF8PROC_PREFIX}
+                        URL ${ARROW_UTF8PROC_SOURCE_URL}
+                        BUILD_BYPRODUCTS "${UTF8PROC_STATIC_LIB}")
+  endif()
 
   file(MAKE_DIRECTORY "${UTF8PROC_PREFIX}/include")
   add_library(utf8proc::utf8proc STATIC IMPORTED)

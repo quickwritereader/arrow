@@ -93,7 +93,10 @@ ARROW_EXPORT extern const char digit_pairs[];
 
 // Based on fmtlib's format_int class:
 // Write digits from right to left into a stack allocated buffer
-inline void FormatOneChar(char c, char** cursor) { *--*cursor = c; }
+template<typename T>
+ void FormatOneChar(T c, char** cursor) { 
+  *--*cursor = c; 
+  }
 
 template <typename Int>
 void FormatOneDigit(Int value, char** cursor) {

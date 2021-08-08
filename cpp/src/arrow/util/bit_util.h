@@ -24,6 +24,19 @@
 #pragma intrinsic(_BitScanForward)
 #define ARROW_POPCOUNT64 __popcnt64
 #define ARROW_POPCOUNT32 __popcnt
+#elif defined(__NEC__)
+#include <bitset>
+#include <type_traits>
+#include <limits>
+
+template < typename T > std::size_t popcount( const T& v )
+{
+    return std::bitset< std::numeric_limits<T>::digits >(v).count() ;
+}
+
+#define ARROW_POPCOUNT64 popcount
+#define ARROW_POPCOUNT32 popcount
+
 #else
 #define ARROW_POPCOUNT64 __builtin_popcountll
 #define ARROW_POPCOUNT32 __builtin_popcount

@@ -34,6 +34,7 @@
 #include "arrow/testing/visibility.h"
 #include "arrow/type_fwd.h"
 #include "arrow/util/macros.h"
+#include "arrow/util/functional.h"
 #include "arrow/visitor_inline.h"
 
 namespace arrow {
@@ -120,6 +121,8 @@ class BatchIterator : public RecordBatchReader {
 
 template <typename Fn>
 struct VisitBuilderImpl {
+
+
   template <typename T, typename BuilderType = typename TypeTraits<T>::BuilderType,
             // need to let SFINAE drop this Visit when it would result in
             // [](NullBuilder*){}(double_builder)

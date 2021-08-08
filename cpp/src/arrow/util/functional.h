@@ -23,7 +23,7 @@
 
 #include "arrow/result.h"
 #include "arrow/util/macros.h"
-
+#include "arrow/util/nec_helpers.h"
 namespace arrow {
 namespace internal {
 

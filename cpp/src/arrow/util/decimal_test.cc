@@ -40,6 +40,11 @@
 #include "arrow/util/int128_internal.h"
 #include "arrow/util/macros.h"
 
+
+//compiler SIGSEGV // we will disable it for __NEC__
+
+#if !defined(__NEC__)
+
 namespace arrow {
 
 using internal::checked_cast;
@@ -1937,3 +1942,5 @@ INSTANTIATE_TEST_SUITE_P(Decimal256ToStringTest, Decimal256ToStringTest,
                          ::testing::ValuesIn(kToStringTestData));
 
 }  // namespace arrow
+
+#endif

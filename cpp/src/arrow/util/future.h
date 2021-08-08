@@ -34,7 +34,7 @@
 #include "arrow/util/optional.h"
 #include "arrow/util/type_fwd.h"
 #include "arrow/util/visibility.h"
-
+#include "arrow/util/nec_helpers.h"
 namespace arrow {
 
 template <typename>

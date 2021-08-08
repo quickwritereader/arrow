@@ -147,7 +147,12 @@ struct DecimalRealConversion {
     } else {
       x *= std::pow(static_cast<Real>(10), static_cast<Real>(scale));
     }
+#if defined(__NEC__)
+    //nec compiler newarbyint does not work properly and fesetround did not work
+    x = std::rint(x);
+#else
     x = std::nearbyint(x);
+#endif
     const auto max_abs = Derived::powers_of_ten()[precision + 38];
     if (x <= -max_abs || x >= max_abs) {
       return Status::Invalid("Cannot convert ", real,
@@ -787,7 +792,12 @@ struct Decimal256RealConversion {
     } else {
       x *= std::pow(static_cast<Real>(10), static_cast<Real>(scale));
     }
+#if defined(__NEC__)
+    //nec compiler newarbyint does not work properly and fesetround did not work
+    x = std::rint(x);
+#else
     x = std::nearbyint(x);
+#endif
     const auto max_abs = Derived::powers_of_ten()[precision + 76];
     if (x >= max_abs) {
       return Status::Invalid("Cannot convert ", real,

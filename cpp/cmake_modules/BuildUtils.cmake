@@ -218,6 +218,31 @@ function(create_merged_static_lib output_target)
   install(FILES ${output_lib_path} DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endfunction()
 
+macro(FIX_HARDCODED_SHARED TARGET_VAR LINK_DIR LIB_LIST_NAME )
+
+    if( ${ARROW_CPU_FLAG} MATCHES "aurora" )
+
+      #FIXME: change it with a proper solution
+      #PROBLEM: cmake adds library as hard coded relative path. example:  [../../release/libarrow.so]
+      #SOLUTION: we will replace it with ordinary links
+
+      set(FIXED_LIST)
+      foreach(X IN LISTS ${LIB_LIST_NAME})
+         if( ${X} MATCHES "(.*)_shared")
+             list(APPEND FIXED_LIST "${CMAKE_MATCH_1}")
+             list(APPEND FIXED_LIST "${CMAKE_MATCH_1}_propogate")
+         else()
+             list(APPEND FIXED_LIST ${X})
+         endif()
+      endforeach()
+
+      #link directory and set new propogate target and proper lib name
+      target_link_directories(${TARGET_VAR} PUBLIC "$<BUILD_INTERFACE:${LINK_DIR}>")
+      set(${LIB_LIST_NAME} ${FIXED_LIST})
+    endif()
+
+endmacro()
+
 # \arg OUTPUTS list to append built targets to
 function(ADD_ARROW_LIB LIB_NAME)
   set(options)
@@ -359,6 +384,13 @@ function(ADD_ARROW_LIB LIB_NAME)
       set(ARG_SHARED_LINK_FLAGS "-undefined dynamic_lookup ${ARG_SHARED_LINK_FLAGS}")
     endif()
 
+    if( ${ARROW_CPU_FLAG} MATCHES "aurora" )
+      FIX_HARDCODED_SHARED("${LIB_NAME}_shared" "${OUTPUT_PATH}" ARG_SHARED_LINK_LIBS)
+
+      #propogate arrow dependency through copy_target for executables (for cases "pthread rt")
+      add_library(${LIB_NAME}_propogate  INTERFACE )
+      target_link_libraries(${LIB_NAME}_propogate INTERFACE ${ARG_SHARED_LINK_LIBS})
+    endif()
     set_target_properties(${LIB_NAME}_shared
                           PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${OUTPUT_PATH}"
                                      RUNTIME_OUTPUT_DIRECTORY "${OUTPUT_PATH}"
@@ -555,11 +587,23 @@ function(ADD_BENCHMARK REL_BENCHMARK_NAME)
     set(BENCHMARK_PATH "${EXECUTABLE_OUTPUT_PATH}/${BENCHMARK_NAME}")
     add_executable(${BENCHMARK_NAME} "${REL_BENCHMARK_NAME}.cc")
 
-    if(ARG_STATIC_LINK_LIBS)
-      # Customize link libraries
-      target_link_libraries(${BENCHMARK_NAME} PRIVATE ${ARG_STATIC_LINK_LIBS})
+    if( ${ARROW_CPU_FLAG} MATCHES "aurora" )
+
+      if(ARG_STATIC_LINK_LIBS)
+        FIX_HARDCODED_SHARED("${BENCHMARK_NAME}" "${EXECUTABLE_OUTPUT_PATH}" ARG_STATIC_LINK_LIBS)
+        target_link_libraries(${BENCHMARK_NAME} PRIVATE "$<BUILD_INTERFACE:${ARG_STATIC_LINK_LIBS}>")
+      else()
+        FIX_HARDCODED_SHARED("${BENCHMARK_NAME}" "${EXECUTABLE_OUTPUT_PATH}" ARROW_BENCHMARK_LINK_LIBS)
+        target_link_libraries(${BENCHMARK_NAME} PRIVATE "$<BUILD_INTERFACE:${ARROW_BENCHMARK_LINK_LIBS}>")
+      endif()
+
     else()
-      target_link_libraries(${BENCHMARK_NAME} PRIVATE ${ARROW_BENCHMARK_LINK_LIBS})
+      if(ARG_STATIC_LINK_LIBS)
+        # Customize link libraries
+        target_link_libraries(${BENCHMARK_NAME} PRIVATE ${ARG_STATIC_LINK_LIBS})
+      else()
+        target_link_libraries(${BENCHMARK_NAME} PRIVATE ${ARROW_BENCHMARK_LINK_LIBS})
+      endif()
     endif()
     add_dependencies(benchmark ${BENCHMARK_NAME})
     set(NO_COLOR "--color_print=false")
@@ -696,11 +740,25 @@ function(ADD_TEST_CASE REL_TEST_NAME)
                                      "${EXECUTABLE_OUTPUT_PATH};$ENV{CONDA_PREFIX}/lib")
   endif()
 
-  if(ARG_STATIC_LINK_LIBS)
-    # Customize link libraries
-    target_link_libraries(${TEST_NAME} PRIVATE ${ARG_STATIC_LINK_LIBS})
+  if( ${ARROW_CPU_FLAG} MATCHES "aurora" )
+
+    if(ARG_STATIC_LINK_LIBS)
+      FIX_HARDCODED_SHARED("${TEST_NAME}" "${EXECUTABLE_OUTPUT_PATH}" ARG_STATIC_LINK_LIBS)
+      target_link_libraries(${TEST_NAME} PRIVATE "$<BUILD_INTERFACE:${ARG_STATIC_LINK_LIBS}>")
+    else()
+      FIX_HARDCODED_SHARED("${TEST_NAME}" "${EXECUTABLE_OUTPUT_PATH}" ARROW_TEST_LINK_LIBS)
+      target_link_libraries(${TEST_NAME} PRIVATE "$<BUILD_INTERFACE:${ARROW_TEST_LINK_LIBS}>")
+    endif()
+
   else()
-    target_link_libraries(${TEST_NAME} PRIVATE ${ARROW_TEST_LINK_LIBS})
+
+    if(ARG_STATIC_LINK_LIBS)
+      # Customize link libraries
+      target_link_libraries(${TEST_NAME} PRIVATE ${ARG_STATIC_LINK_LIBS})
+    else()
+      target_link_libraries(${TEST_NAME} PRIVATE ${ARROW_TEST_LINK_LIBS})
+    endif()
+
   endif()
 
   if(ARG_PRECOMPILED_HEADER_LIB)

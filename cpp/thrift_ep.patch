@@ -1,0 +1,104 @@
+--- build/cmake/DefinePlatformSpecifc.cmake	2019-10-11 07:34:27.000000000 +0900
++++ build/cmake/DefinePlatformSpecifc_new.cmake	2021-06-18 18:17:56.571312001 +0900
+@@ -29,8 +29,8 @@
+     set(CMAKE_${lang}_FLAGS "${CMAKE_${lang}_FLAGS} -Wall")
+     set(CMAKE_${lang}_FLAGS "${CMAKE_${lang}_FLAGS} -ferror-limit=1")
+   elseif(CMAKE_${lang}_COMPILER_ID STREQUAL "GNU")
+-    set(CMAKE_${lang}_FLAGS "${CMAKE_${lang}_FLAGS} -Wall -Wextra")
+-    set(CMAKE_${lang}_FLAGS "${CMAKE_${lang}_FLAGS} -fmax-errors=1")
++    set(CMAKE_${lang}_FLAGS "${CMAKE_${lang}_FLAGS} -Wall -mno-vector")
++    
+   elseif(CMAKE_${lang}_COMPILER_ID STREQUAL "MSVC")
+     set(CMAKE_${lang}_FLAGS "${CMAKE_${lang}_FLAGS} /MP") # parallel build
+     set(CMAKE_${lang}_FLAGS "${CMAKE_${lang}_FLAGS} /W3") # warning level 3
+--- lib/cpp/src/thrift/TOutput.cpp	2019-10-11 07:34:27.000000000 +0900
++++ lib/cpp/src/thrift/TOutput_new.cpp	2021-06-18 19:12:22.327117346 +0900
+@@ -101,7 +101,7 @@
+ }
+ 
+ std::string TOutput::strerror_s(int errno_copy) {
+-#ifndef HAVE_STRERROR_R
++#if !defined(HAVE_STRERROR_R) || defined(__NEC__)
+   return "errno = " + to_string(errno_copy);
+ #else // HAVE_STRERROR_R
+ 
+--- lib/cpp/src/thrift/async/TAsyncProtocolProcessor.cpp	2021-06-19 01:43:32.155718435 +0900
++++ lib/cpp/src/thrift/async/TAsyncProtocolProcessor_new.cpp	2021-06-19 01:40:18.708729966 +0900
+@@ -31,6 +31,11 @@
+                                       std::shared_ptr<TBufferBase> obuf) {
+   std::shared_ptr<TProtocol> iprot(pfact_->getProtocol(ibuf));
+   std::shared_ptr<TProtocol> oprot(pfact_->getProtocol(obuf));
++
++#if defined(__NEC__)
++  auto op =[_return, oprot](bool healthy){ return TAsyncProtocolProcessor::finish( _return, oprot, healthy) ; };
++  return underlying_->process(op,  iprot,  oprot);
++#else
+   return underlying_
+       ->process(std::bind(&TAsyncProtocolProcessor::finish,
+                                              _return,
+@@ -38,6 +43,7 @@
+                                              std::placeholders::_1),
+                 iprot,
+                 oprot);
++#endif
+ }
+ 
+ /* static */ void TAsyncProtocolProcessor::finish(
+--- build/cmake/DefineOptions.cmake	2021-06-22 23:42:20.563552490 +0900
++++ build/cmake/DefineOptions_new.cmake	2021-06-22 23:42:13.519552910 +0900
+@@ -44,6 +44,7 @@
+     add_definitions(-DBOOST_TEST_DYN_LINK)
+ endif()
+ 
++add_definitions("-DBOOST_TYPE_INDEX_CTTI_USER_DEFINED_PARSING=(0, 0, false, \"\")")
+ # as3
+ option(WITH_AS3 "Build ActionScript 3 Thrift Library" ON)
+ if (WITH_AS3)
+--- lib/cpp/src/thrift/transport/THttpServer.cpp	2021-06-23 01:32:26.870158723 +0900
++++ lib/cpp/src/thrift/transport/THttpServer_new.cpp	2021-06-23 01:32:17.281159295 +0900
+@@ -27,7 +27,25 @@
+ #if defined(_MSC_VER) || defined(__MINGW32__)
+   #include <Shlwapi.h>
+ #endif
+-
++#if defined(__NEC__) && !defined(strcasestr)
++char * strcasestr(const char *s, const char *find)
++{
++	char c, sc;
++	size_t len;
++	if ((c = *find++) != 0) {
++		c = (char)tolower((unsigned char)c);
++		len = strlen(find);
++		do {
++			do {
++				if ((sc = *s++) == 0)
++					return (NULL);
++			} while ((char)tolower((unsigned char)sc) != c);
++		} while (strncasecmp(s, find, len) != 0);
++		s--;
++	}
++	return ((char *)s);
++}
++#endif
+ using std::string;
+ 
+ namespace apache {
+--- build/cmake/DefineCMakeDefaults.cmake	2021-06-23 05:23:38.681331899 +0900
++++ build/cmake/DefineCMakeDefaults_new.cmake	2021-06-23 05:24:15.678329693 +0900
+@@ -63,11 +63,11 @@
+ #
+ # C++ Language Level Defaults - this depends on the compiler capabilities
+ #
+-if (NOT DEFINED CMAKE_CXX_STANDARD)
+-  set(CMAKE_CXX_STANDARD 11) # C++11
+-  message(STATUS "Setting C++11 as the default language level.")
+-  message(STATUS "To specify a different C++ language level, set CMAKE_CXX_STANDARD")
+-endif()
++#if (NOT DEFINED CMAKE_CXX_STANDARD)
++#  set(CMAKE_CXX_STANDARD 11) # C++11
++#  message(STATUS "Setting C++11 as the default language level.")
++#  message(STATUS "To specify a different C++ language level, set CMAKE_CXX_STANDARD")
++#endif()
+ 
+ if (CMAKE_CXX_STANDARD EQUAL 98)
+   message(FATAL_ERROR "only C++11 or above C++ standard is supported")

@@ -1,0 +1,11 @@
+--- CMakeLists.txt	2020-12-16 06:36:45.000000000 +0900
++++ CMakeLists_new.txt	2021-07-03 03:53:12.197156926 +0900
+@@ -39,7 +39,7 @@
+ if (NOT MSVC)
+   set_target_properties(
+     utf8proc PROPERTIES
+-    COMPILE_FLAGS "-O2 -std=c99 -pedantic -Wall"
++    COMPILE_FLAGS "-O2 -mno-vector -fdiag-vector=0 -traceback -std=c99 -pedantic -Wall"
+   )
+ endif ()
+ 
